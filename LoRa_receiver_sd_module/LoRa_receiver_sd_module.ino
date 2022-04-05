@@ -15,16 +15,14 @@ File myFile;
 #define dio0 2
 #define CHIP_SELECT_SD 3
 
-String file_name_A = "Receiver_a";
-String file_name_B = ".txt";
-
-String file_name = file_name_A + file_name_B;
-int session_identifier = random(11111,99999);
+long session_identifier = 0;
 
 void setup() {
   //initialize Serial Monitor
   Serial.begin(9600);
-  Serial.println(file_name);
+  randomSeed(analogRead(0));
+  session_identifier = random(11111,99999);
+  
   Serial.print("Receiver session ID:"); Serial.println(session_identifier);
   while (!Serial);
   Serial.println("LoRa Receiver");
@@ -52,11 +50,11 @@ void setup() {
   while (1);
   }
   Serial.println("initialization done.");
-  myFile = SD.open("ReceiverA.txt", FILE_WRITE); // check whats happening here
+  myFile = SD.open("rb.txt", FILE_WRITE); // check whats happening here
   // if the file opened okay, write to it:
   if (myFile) {
     Serial.print("Writing to SD...");
-    myFile.println("Receiver session ID:");
+    myFile.print("Receiver session ID: ");
     myFile.println(session_identifier);
     myFile.close();
     Serial.println("done.");
@@ -70,31 +68,42 @@ void setup() {
 void loop() {
   // try to parse packet
   int packetSize = LoRa.parsePacket();
+
+  String LoRaData;
+  int LoRa_RSSI;
+  
+  
   if (packetSize) {
     // received a packet
     Serial.print("Received packet '");
-
+  
     // read packet
     while (LoRa.available()) {
-      String LoRaData = LoRa.readString();
+      LoRaData = LoRa.readString();
       Serial.print(LoRaData);
-
       
-      myFile = SD.open(file_name, FILE_WRITE);
-      if (myFile) {
-      myFile.print(LoRaData);
-      myFile.close();
-      }
-
     // print RSSI of packet
     Serial.print("' with RSSI ");
-    Serial.println(LoRa.packetRssi());
-    myFile = SD.open(file_name, FILE_WRITE);
-     if (myFile) {
-     myFile.print("' with RSSI: ");
-     myFile.print(LoRa.packetRssi());
-     myFile.close();
+    LoRa_RSSI = LoRa.packetRssi();
+    Serial.println(LoRa_RSSI);
      }
+  
+   myFile = SD.open("rb.txt", FILE_WRITE);
+     if (myFile) {
+     Serial.print("Writing to SD...");
+     myFile.print("Data: ");
+     myFile.print(LoRaData);
+     myFile.print(" with RSSI: ");
+     myFile.println(LoRa_RSSI);
+     myFile.close();
+     Serial.println("done.");
+     }
+     else {
+       // if the file didn't open, print an error:
+       Serial.println("error opening SD file");
+       delay(500);
+     }
+
   }
-  }
+  
 }

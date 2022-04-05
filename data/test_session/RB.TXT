@@ -1,0 +1,20 @@
+Receiver session ID: 64706
+Data: ID: 46828 packet_number: 44' with RSSI: -18
+Data: ID: 46828 packet_number: 45' with RSSI: -18
+Data: ID: 46828 packet_number: 46' with RSSI: -19
+Data: ID: 46828 packet_number: 47' with RSSI: -18
+Data: ID: 46828 packet_number: 48' with RSSI: -18
+Data: ID: 46828 packet_number: 49' with RSSI: -19
+Data: ID: 46828 packet_number: 50' with RSSI: -21
+Receiver session ID: 77017
+Data: ID: 46828 packet_number: 1709 with RSSI: -19
+Data: ID: 46828 packet_number: 1710 with RSSI: -19
+Data: ID: 46828 packet_number: 1711 with RSSI: -19
+Data: ID: 46828 packet_number: 1712 with RSSI: -19
+Data: ID: 46828 packet_number: 1713 with RSSI: -19
+Data: ID: 46828 packet_number: 1714 with RSSI: -18
+Data: ID: 46828 packet_number: 1715 with RSSI: -20
+Data: ID: 46828 packet_number: 1716 with RSSI: -21
+Data: ID: 46828 packet_number: 1717 with RSSI: -25
+Data: ID: 46828 packet_number: 1718 with RSSI: -26
+Data: ID: 46828 packet_number: 1719 with RSSI: -27

@@ -49,9 +49,9 @@ void loop() {
 
   //Send LoRa packet to receiver
   LoRa.beginPacket();
-  LoRa.print("ID:");
+  LoRa.print("ID: ");
   LoRa.print(session_identifier);
-  LoRa.print(" packet_number:");
+  LoRa.print(" packet_number: ");
   LoRa.print(counter);
   LoRa.endPacket();
 
