@@ -40,9 +40,9 @@ d_inv_sqr_1 = d_ground_truth_1.*sqrt(Pr_ground_truth_1./Pr1);
 
 % coordinates for Rx1, Rx2 and Rx3 respectively
 Rx_coord = [ 0, 14*.23 ; 12*.23, 14*.23 ; 4*0.23, 0 ];
-Tx_start_coord = [ 6*.23, 8*.23 ];
+Tx_start_coord = 0.23*[ 6, 8; 6, 10; 6, 12; 8, 12; 8, 14; 10, 14; 10, 12; 10, 10; 8, 10; 8, 8; 8, 6; 6, 6; 6,4; 4,4; 4,6; 4,8; 6,8];
 
-d_ground_truth_temp =  ones(3,2).*Tx_start_coord - Rx_coord;
+d_ground_truth_temp =  ones(3,2).*Tx_start_coord(1,:) - Rx_coord;
 d_ground_truth_temp2 = sqrt(d_ground_truth_temp(:,1).^2+d_ground_truth_temp(:,2).^2);
 
 Pr = dBm2W([session_1_Rx1(:,3), session_1_Rx2(:,3), session_1_Rx3(:,3) ]);
@@ -69,7 +69,7 @@ Rx_plot = plot(Rx_coord(:,1),Rx_coord(:,2),'^','MarkerSize',10,...
     'MarkerEdgeColor',[40/255 156/255 86/255],'MarkerFaceColor',...
     [135/255 215/255 167/255]);
 
-legend([Tx_plot, Rx_plot],'Transmitter starting position','Receivers');
+legend([Tx_plot, Rx_plot],'Transmitter positions','Receivers');
 
 for k = 1:length(Pr_ground_truth)
     circle_handle = circle(Rx_coord(:,1)',Rx_coord(:,2)',d_inv_sqr_model(k,:));
