@@ -1,0 +1,65 @@
+close all; clearvars; clc;
+
+load("..\data\LoRa_trilateration_test_1\Rx1.mat");
+Rx1 = filtered_data;
+
+load("..\data\LoRa_trilateration_test_1\Rx2.mat");
+Rx2 = filtered_data;
+
+load("..\data\LoRa_trilateration_test_1\Rx3.mat");
+Rx3 = filtered_data;
+
+session_1_Rx1 = Rx1(22:361,:);
+session_1_Rx2 = Rx2(22:361,:);
+session_1_Rx3 = Rx3(22:361,:);
+
+% data_selection = [ 5:16, 18:35, 38:59, 65:81, 84:109, 111:126, 130:150];
+
+%% Free space path loss model
+
+c = 3e8;
+f = 433e6;
+
+PtdBm = 20;
+Pt = 1e-1;
+
+PrdBm = session_1_Rx1(:,3);
+Pr1 = 10.^(PrdBm./10-3);
+
+d = c*sqrt(Pt)./(4*pi*f*sqrt(Pr1));
+
+%% Inverse square model
+
+% Take the first measurement with known distance as ground truth
+d_ground_truth_1 = sqrt((6*.23)^2*2);
+Pr_ground_truth_1 = Pr1(1);
+
+d_inv_sqr_1 = d_ground_truth_1.*sqrt(Pr_ground_truth_1./Pr1);
+
+%% Coordinate system and distance calculations, see drawing in notebook for reference
+
+% coordinates for Rx1, Rx2 and Rx3 respectively
+Rx_coord = [ 0, 14*.23 ; 12*.23, 14*.23 ; 4*0.23, 0 ];
+Tx_start_coord = [ 6*.23, 8*.23 ];
+
+d_ground_truth_temp =  ones(3,2).*Tx_start_coord - Rx_coord;
+d_ground_truth_temp2 = sqrt(d_ground_truth_temp(:,1).^2+d_ground_truth_temp(:,2).^2);
+
+Pr = dBm2W([session_1_Rx1(:,3), session_1_Rx2(:,3), session_1_Rx3(:,3) ]);
+Pr_ground_truth = Pr(1,:) .* ones(size(Pr));
+d_ground_truth = d_ground_truth_temp2' .* ones(size(Pr));
+
+d_inv_sqr_model = d_ground_truth .* sqrt( Pr_ground_truth ./ Pr ); 
+
+%% Map making and plotting
+
+figure;
+hold on; grid on;
+
+
+plot( Tx_start_coord(:,1), Tx_start_coord(:,2) ,'d','MarkerSize',10,...
+    'MarkerEdgeColor','red','MarkerFaceColor',[1 .6 .6]);
+    
+plot(Rx_coord(:,1),Rx_coord(:,2),'^','MarkerSize',10,...
+    'MarkerEdgeColor','red','MarkerFaceColor',[1 .6 .6]);)
+ 

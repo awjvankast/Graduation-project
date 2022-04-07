@@ -1,7 +1,7 @@
 close all; clear all; clc;
 
 % fill in the right path
-data = LoRa_data_import_func("C:\Users\Bram\Documents\GitHub\Graduation-project\data\LoRa_trilateration_test_1\Rx1.txt");
+data = LoRa_data_import_func("..\data\LoRa_trilateration_test_1\LoRa_trilateration_test_1\Rx1.txt");
 
 session_index_bin = ~isnan(data(:,2));
 session_start_index = find(session_index_bin==1);
@@ -26,4 +26,4 @@ relevant_data_row_bin = ~isnan(data_to_use( :,1 ));
 filtered_data = data_to_use(relevant_data_row_bin,:)
 
 % stores data in relevant folder
-save("C:\Users\Bram\Documents\GitHub\Graduation-project\data\LoRa_trilateration_test_1\Rx1.mat",'filtered_data');
+save("..\data\LoRa_trilateration_test_1\Rx1.mat",'filtered_data');
