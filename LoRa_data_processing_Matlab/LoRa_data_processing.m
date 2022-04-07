@@ -1,6 +1,7 @@
 close all; clear all; clc;
 
-data = LoRa_data_import_func("C:\Users\Bram\Documents\GitHub\Graduation-project\data\test_session\RB.TXT");
+% fill in the right path
+data = LoRa_data_import_func("C:\Users\Bram\Documents\GitHub\Graduation-project\data\LoRa_trilateration_test_1\Rx1.txt");
 
 session_index_bin = ~isnan(data(:,2));
 session_start_index = find(session_index_bin==1);
@@ -18,10 +19,11 @@ for k=1:no_indices
     session_data(k,rel_rows,:) = data(rel_rows,[1, 3, 4]);
 end
 
-relevant_no_session = 2;
+relevant_no_session = 2; % fill the how many-th receiver session is relevant
+
 data_to_use = squeeze(session_data(relevant_no_session,:,:));
 relevant_data_row_bin = ~isnan(data_to_use( :,1 ));
 filtered_data = data_to_use(relevant_data_row_bin,:)
 
 % stores data in relevant folder
-save("C:\Users\Bram\Documents\GitHub\Graduation-project\data\test_session\data_set1.mat",'filtered_data');
+save("C:\Users\Bram\Documents\GitHub\Graduation-project\data\LoRa_trilateration_test_1\Rx1.mat",'filtered_data');
