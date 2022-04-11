@@ -15,6 +15,13 @@ session_1_Rx3 = Rx3(22:361,:);
 
 % data_selection = [ 5:16, 18:35, 38:59, 65:81, 84:109, 111:126, 130:150];
 
+%% Making initial plot
+
+f = figure;
+f.WindowState = 'maximized';
+fig = gca;
+fig.FontSize = 16;
+
 %% Free space path loss model
 
 c = 3e8;
@@ -28,20 +35,20 @@ Pr1 = 10.^(PrdBm_test./10-3);
 
 d = c*sqrt(Pt)./(4*pi*f*sqrt(Pr1));
 
-%% Inverse square model
 
-% Take the first measurement with known distance as ground truth
-d_ground_truth_1 = sqrt((6*.23)^2*2);
-Pr_ground_truth_1 = Pr1(8);
 
-d_inv_sqr_1 = d_ground_truth_1.*sqrt(Pr_ground_truth_1./Pr1);
-
-%% Coordinate system and distance calculations, see drawing in notebook for reference
+%% Coordinate system, 
+% see drawing in notebook for reference
 
 % coordinates for Rx1, Rx2 and Rx3 respectively
 Rx_coord = [ 0, 14*.23 ; 12*.23, 14*.23 ; 4*0.23, 0 ];
+% sequence for transmitter movement
 Tx_start_coord = 0.23*[ 6, 8; 6, 10; 6, 12; 8, 12; 8, 14; 10, 14; 10, 12; 10, 10; 8, 10; 8, 8; 8, 6; 6, 6; 6,4; 4,4; 4,6; 4,8; 6,8];
 
+%% Inverse square model
+% with distance calculations and unit conversion,
+
+% Take the first measurement with known distance as ground truth
 d_ground_truth_temp =  ones(3,2).*Tx_start_coord(1,:) - Rx_coord;
 d_ground_truth_temp2 = sqrt(d_ground_truth_temp(:,1).^2+d_ground_truth_temp(:,2).^2);
 
@@ -61,19 +68,29 @@ scaling_factor = 1.4;
 %d_inv_sqr_model = d_ground_truth .* ( Pr_ground_truth ./ Pr ).^scaling_factor; 
 
 % Model with power in dBm (reciprocal because lower power is higher number)
+d_inv_sqr_model = d_ground_truth .* ( Pr_dBm ./ Pr_ground_truth_dBm   ).^scaling_factor;
 
-d_inv_sqr_model = d_ground_truth .* ( Pr_dBm ./ Pr_ground_truth_dBm   ).^scaling_factor; 
+%% Vector model
+% Take the reciprocal of the signal strength as a vector from a point which
+% is the center from the three receivers. These vectors should point
+% towards their respective receivers. Then calculate the new position.
+
+% First start by calculating the midpoint of three points.
+% This can be done by drawing a circle which goes through these 3 points. 
+m_AC = Rx_coord(3,:) - Rx_coord(1,:);
+m_AC_ = m_AC(2)/m_AC(1);
+m_vec = -1/m_AC_;
+mid_point = [Rx_coord(1,1) + Rx_coord(3,1) , Rx_coord(1,2) + Rx_coord(3,2)]/2;
+b_vec = mid_point(2) - m_vec*mid_point(1);
+
+Dx = (Rx_coord(2,1)^2+Rx_coord(2,2)^2-Rx_coord(1,2)^2+2*b_vec*(Rx_coord(1,2)-Rx_coord(2,2)))/...
+     (2*(Rx_coord(2,1)-Rx_coord(1,1)+m_vec*(Rx_coord(2,2)-Rx_coord(1,2))));
+Dy = m_vec*Dx + b_vec;
+plot(Dx,Dy,'*','Linewidth',16);
 
 
-% vectoren of met dB's werken ipv dBm
 
 %% Map making and plotting
-
-f = figure;
-f.WindowState = 'maximized';
-
-fig = gca;
-fig.FontSize = 16;
 
 hold on; grid on; xlim([-1 5]); ylim([-1 5]);
 ylabel('Y coordinates'); xlabel('X coordinates');
