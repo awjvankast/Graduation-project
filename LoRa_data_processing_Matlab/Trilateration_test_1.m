@@ -23,8 +23,8 @@ f = 433e6;
 PtdBm = 20;
 Pt = 1e-1;
 
-PrdBm = session_1_Rx1(:,3);
-Pr1 = 10.^(PrdBm./10-3);
+PrdBm_test = session_1_Rx1(:,3);
+Pr1 = 10.^(PrdBm_test./10-3);
 
 d = c*sqrt(Pt)./(4*pi*f*sqrt(Pr1));
 
@@ -45,11 +45,27 @@ Tx_start_coord = 0.23*[ 6, 8; 6, 10; 6, 12; 8, 12; 8, 14; 10, 14; 10, 12; 10, 10
 d_ground_truth_temp =  ones(3,2).*Tx_start_coord(1,:) - Rx_coord;
 d_ground_truth_temp2 = sqrt(d_ground_truth_temp(:,1).^2+d_ground_truth_temp(:,2).^2);
 
-Pr = dBm2W([session_1_Rx1(:,3), session_1_Rx2(:,3), session_1_Rx3(:,3) ]);
+Pr_dBm = [session_1_Rx1(:,3), session_1_Rx2(:,3), session_1_Rx3(:,3) ];
+Pr = dBm2W(Pr_dBm);
+
+Pr_ground_truth_dBm = Pr_dBm(8,:) .* ones(size(Pr));
 Pr_ground_truth = Pr(8,:) .* ones(size(Pr));
 d_ground_truth = d_ground_truth_temp2' .* ones(size(Pr));
 
-d_inv_sqr_model = d_ground_truth .* ( Pr_ground_truth ./ Pr ).^0.5; 
+% Scaling factor of attenuation for inverse square model
+% Theoretically should be 0.5 but has to be set higher for more accurat
+% results
+scaling_factor = 1.4;
+
+% Model with power in wats
+%d_inv_sqr_model = d_ground_truth .* ( Pr_ground_truth ./ Pr ).^scaling_factor; 
+
+% Model with power in dBm (reciprocal because lower power is higher number)
+
+d_inv_sqr_model = d_ground_truth .* ( Pr_dBm ./ Pr_ground_truth_dBm   ).^scaling_factor; 
+
+
+% vectoren of met dB's werken ipv dBm
 
 %% Map making and plotting
 
@@ -74,7 +90,7 @@ legend([Tx_plot, Rx_plot],'Transmitter positions','Receivers');
 for k = 1:length(Pr_ground_truth)
     circle_handle = circle(Rx_coord(:,1)',Rx_coord(:,2)',d_inv_sqr_model(k,:));
     count = text(-.75,-.5, "Data entry " + k + "/340",'FontSize',16);
-    pause(.1);
+    pause(.2);
     delete(circle_handle);
     delete(count);
 end
