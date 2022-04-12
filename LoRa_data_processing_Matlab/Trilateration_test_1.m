@@ -21,6 +21,7 @@ f = figure;
 f.WindowState = 'maximized';
 fig = gca;
 fig.FontSize = 16;
+hold on;
 
 %% Free space path loss model
 
@@ -86,13 +87,24 @@ b_vec = mid_point(2) - m_vec*mid_point(1);
 Dx = (Rx_coord(2,1)^2+Rx_coord(2,2)^2-Rx_coord(1,2)^2+2*b_vec*(Rx_coord(1,2)-Rx_coord(2,2)))/...
      (2*(Rx_coord(2,1)-Rx_coord(1,1)+m_vec*(Rx_coord(2,2)-Rx_coord(1,2))));
 Dy = m_vec*Dx + b_vec;
-plot(Dx,Dy,'*','Linewidth',16);
 
+marker_plot = plot(Dx, Dy, '+', 'MarkerSize',14,'Linewidth', 1.5,...
+    'MarkerEdgeColor','green');
+
+% Making the unit vectors
+
+directional_vec = Rx_coord - [Dx Dy].*ones(3,2);
+length_vec = sqrt( sum( directional_vec.^2, 2 ) );
+unit_vec = directional_vec ./ length_vec;
+
+inverse_signal_strength =  length_vec(1) - d_inv_sqr_model;
+
+%quiver( ones(3,1).*Dx,ones(3,1).*Dy, unit_vec(:,1), unit_vec(:,2) );
 
 
 %% Map making and plotting
 
-hold on; grid on; xlim([-1 5]); ylim([-1 5]);
+grid on; xlim([-1 5]); ylim([-1 5]);
 ylabel('Y coordinates'); xlabel('X coordinates');
 
 Tx_plot = plot( Tx_start_coord(:,1), Tx_start_coord(:,2) ,'d','MarkerSize',10,...
@@ -102,15 +114,33 @@ Rx_plot = plot(Rx_coord(:,1),Rx_coord(:,2),'^','MarkerSize',10,...
     'MarkerEdgeColor',[40/255 156/255 86/255],'MarkerFaceColor',...
     [135/255 215/255 167/255]);
 
-legend([Tx_plot, Rx_plot],'Transmitter positions','Receivers');
+uistack(marker_plot,'top');
 
 for k = 1:length(Pr_ground_truth)
     circle_handle = circle(Rx_coord(:,1)',Rx_coord(:,2)',d_inv_sqr_model(k,:));
     count = text(-.75,-.5, "Data entry " + k + "/340",'FontSize',16);
-    pause(.2);
+    
+    vec_model_x = unit_vec(:,1)' .* inverse_signal_strength(k,:);
+    vec_model_y = unit_vec(:,2)' .* inverse_signal_strength(k,:);
+    vector_plot = quiver( ones(3,1).*Dx, ones(3,1).*Dy, vec_model_x', vec_model_y', 'r' );
+    
+    fin_vec_x = (sum(vec_model_x) + Dx) ;
+    fin_vec_y = (sum(vec_model_y) + Dy) ;
+    
+    vec_point = plot( fin_vec_x, fin_vec_y, '*', 'Linewidth', 12, 'MarkerEdgeColor', 'blue');
+    
+    uistack([marker_plot,vec_point], 'top');
+    legend([Tx_plot, Rx_plot, marker_plot, vec_point],'Transmitter positions','Receivers',...
+        'Middle point of Rx','Estimated Tx position vector model');
+    pause(.1);
+    
     delete(circle_handle);
+    delete(vec_point);
+    delete(vector_plot);
     delete(count);
 end
+
+
    
     
 

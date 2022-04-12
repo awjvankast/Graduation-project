@@ -8,5 +8,5 @@ plot_handle = [];
 for k = 1:length(x) 
     xp=r(k)*cos(ang);
     yp=r(k)*sin(ang);
-    plot_handle = [plot_handle plot(x(k)+xp,y(k)+yp)];
+    plot_handle = [plot_handle plot(x(k)+xp,y(k)+yp, 'k')];
 end
