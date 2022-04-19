@@ -101,6 +101,28 @@ inverse_signal_strength =  length_vec(1) - d_inv_sqr_model;
 
 %quiver( ones(3,1).*Dx,ones(3,1).*Dy, unit_vec(:,1), unit_vec(:,2) );
 
+%% Least squares model
+
+syms x y ; syms w [1 3]; syms f [1 3]; syms m [1 3]
+syms E(x,y);
+syms deriv(x,y);
+
+% Testing data
+ft = [0, 1, -1]; wt = [ -1 0.5 2]; mt = [ 1 0.75 1.5];
+hold on; grid on;
+circle(wt,ft,mt);
+
+E(x,y) = sum( ( (x-w).^2 + (y-f).^2 - m.^2 ).^2 );
+deriv_x(x,y) = diff(E,x);
+deriv_y(x,y) = diff(E,y);
+
+deriv_x_data = subs(deriv_x,[w,f,m],[wt,ft,mt]);
+deriv_y_data = subs(deriv_y,[w,f,m],[wt,ft,mt]);
+
+[a,b,c,d] = solve(deriv_x_data == 0, deriv_y_data == 0, 'Real', true,'ReturnConditions',true);
+
+
+
 
 %% Map making and plotting
 
@@ -132,7 +154,7 @@ for k = 1:length(Pr_ground_truth)
     uistack([marker_plot,vec_point], 'top');
     legend([Tx_plot, Rx_plot, marker_plot, vec_point],'Transmitter positions','Receivers',...
         'Middle point of Rx','Estimated Tx position vector model');
-    pause(.1);
+    pause(.2);
     
     delete(circle_handle);
     delete(vec_point);
