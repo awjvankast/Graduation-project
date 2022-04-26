@@ -105,22 +105,23 @@ inverse_signal_strength =  length_vec(1) - d_inv_sqr_model;
 
 syms x y ; syms w [1 3]; syms f [1 3]; syms m [1 3]
 syms E(x,y);
-syms deriv(x,y);
+syms deriv(x,y); syms deriv_x(x,y); syms deriv_y(x,y);
 
 % Testing data
-ft = [0, 1, -1]; wt = [ -1 0.5 2]; mt = [ 1 0.75 1.5];
-hold on; grid on;
-circle(wt,ft,mt);
+ft = [0, -.5, -1]; wt = [ -3 0 2]; mt = [ .9 0.75 1.5];
+%hold on; grid on;
+%circle(wt,ft,mt);
 
 E(x,y) = sum( ( (x-w).^2 + (y-f).^2 - m.^2 ).^2 );
 deriv_x(x,y) = diff(E,x);
 deriv_y(x,y) = diff(E,y);
 
-deriv_x_data = subs(deriv_x,[w,f,m],[wt,ft,mt]);
-deriv_y_data = subs(deriv_y,[w,f,m],[wt,ft,mt]);
-
-[a,b,c,d] = solve(deriv_x_data == 0, deriv_y_data == 0, 'Real', true,'ReturnConditions',true);
-
+% deriv_x_data = subs(deriv_x,[w,f,m],[wt,ft,mt]);
+% deriv_y_data = subs(deriv_y,[w,f,m],[wt,ft,mt]);
+% 
+% solution = vpasolve([deriv_x_data == 0, deriv_y_data == 0]);
+% x_ls = vpa(solution.x(5)); y_ls = vpa(solution.y(5));
+% plot(x_ls,y_ls,'*');
 
 
 
@@ -142,6 +143,7 @@ for k = 1:length(Pr_ground_truth)
     circle_handle = circle(Rx_coord(:,1)',Rx_coord(:,2)',d_inv_sqr_model(k,:));
     count = text(-.75,-.5, "Data entry " + k + "/340",'FontSize',16);
     
+    %% Vector model
     vec_model_x = unit_vec(:,1)' .* inverse_signal_strength(k,:);
     vec_model_y = unit_vec(:,2)' .* inverse_signal_strength(k,:);
     vector_plot = quiver( ones(3,1).*Dx, ones(3,1).*Dy, vec_model_x', vec_model_y', 'r' );
@@ -151,11 +153,24 @@ for k = 1:length(Pr_ground_truth)
     
     vec_point = plot( fin_vec_x, fin_vec_y, '*', 'Linewidth', 12, 'MarkerEdgeColor', 'blue');
     
-    uistack([marker_plot,vec_point], 'top');
-    legend([Tx_plot, Rx_plot, marker_plot, vec_point],'Transmitter positions','Receivers',...
-        'Middle point of Rx','Estimated Tx position vector model');
-    pause(.2);
+    %% Least squares model  
+    deriv_x_data = subs(deriv_x,[w,f,m],[Rx_coord(:,1)',Rx_coord(:,2)',d_inv_sqr_model(k,:)]);
+    deriv_y_data = subs(deriv_y,[w,f,m],[Rx_coord(:,1)',Rx_coord(:,2)',d_inv_sqr_model(k,:)]);
+
+    solution_ls = vpasolve([deriv_x_data == 0, deriv_y_data == 0]);
+    solution_ls_x = vpa(solution_ls.x); solution_ls_y = vpa(solution_ls.y);
+    sol_ls_x_real = solution_ls_x( imag(solution_ls_x) == 0);
+    sol_ls_y_real = solution_ls_y( imag(solution_ls_y) == 0);
     
+    ls_marker = plot(sol_ls_x_real,sol_ls_y_real,'o','MarkerSize',10,'Linewidth',6,'Color',[0.2 .9 0.1]);
+    
+    %% Plot stuff
+    uistack([ls_marker, marker_plot,vec_point], 'top');
+    legend([Tx_plot, Rx_plot, marker_plot, vec_point, ls_marker],'Transmitter positions','Receivers',...
+        'Middle point of Rx','Estimated Tx position vector model','Least Squares marker');
+    pause(.1);
+    
+    delete(ls_marker);
     delete(circle_handle);
     delete(vec_point);
     delete(vector_plot);
