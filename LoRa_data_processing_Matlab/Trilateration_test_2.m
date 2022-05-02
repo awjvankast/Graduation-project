@@ -66,14 +66,28 @@ figure(dmod_plot);
 plot(dmod_dist/100,dmod_RSSI_mean,'-*');
 grid on; ylabel('RSSI [dBm]'); xlabel('Distance [m]');
 
-    
+%% Trilateration data matching
+close all;
+% Some packets are not received by a single Rx but are by the other Rx's 
 
+% The RSSI data of the first and last packets are contaminated by the person standing
+% next to the Tx so filter the data on this
 
+% Use only IMU data when the value changes significantly
 
+% TODO: this one is not ordered correctly, need to fix it
+[no_ID, ~] = groupcounts(Rx_blue(:,1));
 
+Blue_ID_received = unique(Rx_blue(:,1),'stable');
+largest_no_ID = max(no_ID);
 
-% Write a check to see if packets match, some packets are not received by a
-% single Rx but are by the other Rx's
+Blue_RSSI = zeros(length(no_ID), largest_no_ID);
+
+for k = 1:length(Blue_ID_received)
+    index_ID = Blue_ID_received(k)==Rx_blue;
+    RSSI = Rx_blue(index_ID(:,1),12);
+    Blue_RSSI(k,1:length(RSSI)+1) = [Blue_ID_received(k) RSSI'];
+end
 
 
 
