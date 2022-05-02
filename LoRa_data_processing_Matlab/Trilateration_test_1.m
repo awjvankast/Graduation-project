@@ -36,8 +36,6 @@ Pr1 = 10.^(PrdBm_test./10-3);
 
 d = c*sqrt(Pt)./(4*pi*f*sqrt(Pr1));
 
-
-
 %% Coordinate system, 
 % see drawing in notebook for reference
 
