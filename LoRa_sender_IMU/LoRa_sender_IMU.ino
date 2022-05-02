@@ -6,12 +6,8 @@
 #include <SPI.h>
 #include <LoRa.h>
 
+// MPU initialization 
 #include <MPU9250_asukiaaa.h>
-#ifdef _ESP32_HAL_I2C_H_
-#define SDA_PIN 21
-#define SCL_PIN 22
-#endif
-
 MPU9250_asukiaaa mySensor;
 float aX, aY, aZ, aSqrt, gX, gY, gZ, mDirection, mX, mY, mZ;
 
@@ -30,11 +26,7 @@ void setup() {
   while (!Serial);
   Serial.println("LoRa Sender");
 
-  #ifdef _ESP32_HAL_I2C_H_ // For ESP32
-  Wire.begin(SDA_PIN, SCL_PIN);
-  mySensor.setWire(&Wire);
-  #endif
-
+  // starting MPU sensors
   mySensor.beginAccel();
   mySensor.beginGyro();
   mySensor.beginMag();
@@ -113,13 +105,19 @@ void loop() {
 
   //Send LoRa packet to receiver
   LoRa.beginPacket();
-  LoRa.print("ID: ");
+  LoRa.print("ID:");
   LoRa.print(session_identifier);
-  LoRa.print(" packet_number: ");
+  LoRa.print(",p_no:");
   LoRa.print(counter);
+  LoRa.print(",accel:");
+  LoRa.print(aX); LoRa.print(","); LoRa.print(aY); LoRa.print(","); LoRa.print(aZ);
+  LoRa.print(",gyro:");
+  LoRa.print(gX); LoRa.print(","); LoRa.print(gY); LoRa.print(","); LoRa.print(gZ);
+  LoRa.print(",mag:");
+  LoRa.print(mX); LoRa.print(","); LoRa.print(mY); LoRa.print(","); LoRa.print(mZ);
   LoRa.endPacket();
 
   counter++;
 
-  delay(3000);
+  delay(1000);
 }
