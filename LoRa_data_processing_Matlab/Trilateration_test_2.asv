@@ -45,9 +45,7 @@ Tx_coord(:,2) = Tx_coord(:,2).*tile_length;
 dmod_dist = (2:2:16).*tile_width;
 
 %% Plot distance model
-% Conclusion: probably need to characterize every single antenna like this
-% As the yellow antenna seems to work okay but the other ones are garbage
-% with this model
+
 figure(dmod_plot);
 dmod_sig = Rx_yellow(466:502,:);
 dmod_RSSI = zeros(15,8);
@@ -88,8 +86,7 @@ Rx_blue_fitted = line_fit(-Rx_blue_bin(:,2));
 Rx_green_fitted = line_fit(-Rx_green_bin(:,2));
 Rx_yellow_fitted = line_fit(-Rx_yellow_bin(:,2));
 
-Rx_fitted = [ Rx_blue_fitted'; Rx_yellow_fitted'; Rx_green_fitted', zeros(1,...
-    length(Rx_blue_fitted)-length(Rx_green_fitted))]';
+Rx_fitted = [ Rx_blue_fitted; Rx_green_fitted; Rx_yellow_fitted ];
 
 %% Trilateration data plotting
 
@@ -104,13 +101,12 @@ for k = 1:length(Rx_blue_bin(:,1))
         Tx_plot = plot( Tx_coord(k,1)/100, Tx_coord(k,2)/100 ,'d','MarkerSize',10,...
     'MarkerEdgeColor','red','MarkerFaceColor',[1 .6 .6]);
 
-    circle_handle = circle(Rx_coord(:,1)'/100,Rx_coord(:,2)'/100,Rx_fitted(k,:)/100);
+    circle_handle = circle(Rx_coord(:,1)',Rx_coord(:,2)',Rx_fitted(k,:));
     
     legend([Tx_plot, Rx_plot], 'Tx position', 'Rx position');
 
-    pause(1);
+    %pause(.5);
     delete(Tx_plot);
-    delete(circle_handle);
 end
 
 %% Line fitting model
@@ -118,10 +114,7 @@ end
 % f(x) = a*x^b
 % Positive RSSI values needs to be inputted
 function fit = line_fit(x)
-    fit = 0.606 .*x.^1.756-278.8; % from cftool
-    
-    % self made
-    %fit = 0.001936.*x.^3.02;
+    fit = 0.001936.*x.^2.987;
 end
 
 
