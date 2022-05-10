@@ -91,6 +91,28 @@ Rx_yellow_fitted = line_fit(-Rx_yellow_bin(:,2));
 Rx_fitted = [ Rx_blue_fitted'; Rx_yellow_fitted'; Rx_green_fitted', zeros(1,...
     length(Rx_blue_fitted)-length(Rx_green_fitted))]';
 
+%% Magnetic north phone calculation
+
+% angle clockwise from horizontal position plot field
+angle = 360-263;
+
+compass_coord = [0,7];
+hypotheneuse = 1;
+compass_arrow_end = [sind(angle-90)*hypotheneuse, cosd(angle-90)*hypotheneuse];
+figure(field_plot);
+quiv = quiver(compass_coord(1),compass_coord(2), compass_arrow_end(1),...
+    compass_arrow_end(2), 'color','r','LineWidth',1.5);
+compass_text = text(0.1,7.2,"North",'Fontsize',16,'color','r');
+
+%% IMU data
+
+% Process data of IMU where we have:
+% Accelerometer -> [g]
+% Gyroscope -> [degrees per second]
+% Magnetometer -> [micro Tesla]
+
+
+
 %% Trilateration data plotting
 
 figure(field_plot);
@@ -106,11 +128,20 @@ for k = 1:length(Rx_blue_bin(:,1))
 
     circle_handle = circle(Rx_coord(:,1)'/100,Rx_coord(:,2)'/100,Rx_fitted(k,:)/100);
     
-    legend([Tx_plot, Rx_plot], 'Tx position', 'Rx position');
+    % Least Squares: 
+    % Take as input the distances of the inverse square model in a 3*1 matrix
+    % Output a single point which minimizes the distances
+    ls_point = least_squares_circles(Rx_coord, Rx_fitted(k,:));
+    ls_marker = plot(ls_point(1)/100,ls_point(2)/100,'s','MarkerSize',11,...
+        'MarkerEdgeColor',[0.121, 0.129, 0.576],'MarkerFaceColor',[0.521, 0.525, 0.839]);
+    
+    legend([Tx_plot, Rx_plot, ls_marker], 'Tx position', 'Rx position',...
+        'Least Squares Estimate');
 
-    pause(1);
+    pause(.1);
     delete(Tx_plot);
     delete(circle_handle);
+    delete(ls_marker);
 end
 
 %% Line fitting model
