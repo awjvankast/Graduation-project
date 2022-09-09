@@ -7,6 +7,12 @@
 #include <SPI.h>
 #include <LoRa.h>
 
+#define LEDPIN_BAT 32
+#define LEDPIN 33
+
+#define SCK 18 
+#define MISO 23
+#define MOSI 19
 
 #define CS_LORA 15
 #define RST_LORA 13
@@ -15,8 +21,7 @@
 #define CS_SD 5
 
 int counter = 0;
- int no_LoRa = 0;
-
+int no_LoRa = 0;
 
 const char* host = "esp32";
 const char* ssid = "POCO";
@@ -24,64 +29,64 @@ const char* password = "knabobar";
 
 WebServer server(80);
 
-  /*
-   * Login page
-   */
-  
-  const char* loginIndex =
-   "<form name='loginForm'>"
-      "<table width='20%' bgcolor='A09F9F' align='center'>"
-          "<tr>"
-              "<td colspan=2>"
-                  "<center><font size=4><b>ESP32 Login Page</b></font></center>"
-                  "<br>"
-              "</td>"
-              "<br>"
-              "<br>"
-          "</tr>"
-          "<tr>"
-               "<td>Username:</td>"
-               "<td><input type='text' size=25 name='userid'><br></td>"
-          "</tr>"
-          "<br>"
-          "<br>"
-          "<tr>"
-              "<td>Password:</td>"
-              "<td><input type='Password' size=25 name='pwd'><br></td>"
-              "<br>"
-              "<br>"
-          "</tr>"
-          "<tr>"
-              "<td><input type='submit' onclick='check(this.form)' value='Login'></td>"
-          "</tr>"
-      "</table>"
+/*
+   Login page
+*/
+
+const char* loginIndex =
+  "<form name='loginForm'>"
+  "<table width='20%' bgcolor='A09F9F' align='center'>"
+  "<tr>"
+  "<td colspan=2>"
+  "<center><font size=4><b>ESP32 Login Page</b></font></center>"
+  "<br>"
+  "</td>"
+  "<br>"
+  "<br>"
+  "</tr>"
+  "<tr>"
+  "<td>Username:</td>"
+  "<td><input type='text' size=25 name='userid'><br></td>"
+  "</tr>"
+  "<br>"
+  "<br>"
+  "<tr>"
+  "<td>Password:</td>"
+  "<td><input type='Password' size=25 name='pwd'><br></td>"
+  "<br>"
+  "<br>"
+  "</tr>"
+  "<tr>"
+  "<td><input type='submit' onclick='check(this.form)' value='Login'></td>"
+  "</tr>"
+  "</table>"
   "</form>"
   "<script>"
-      "function check(form)"
-      "{"
-      "if(form.userid.value=='admin' && form.pwd.value=='admin')"
-      "{"
-      "window.open('/serverIndex')"
-      "}"
-      "else"
-      "{"
-      " alert('Error Password or Username')/*displays error message*/"
-      "}"
-      "}"
+  "function check(form)"
+  "{"
+  "if(form.userid.value=='admin' && form.pwd.value=='admin')"
+  "{"
+  "window.open('/serverIndex')"
+  "}"
+  "else"
+  "{"
+  " alert('Error Password or Username')/*displays error message*/"
+  "}"
+  "}"
   "</script>";
-  
-  /*
-   * Server Index Page
-   */
-  
-  const char* serverIndex =
-  "<script src='https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js'></script>"
-  "<form method='POST' action='#' enctype='multipart/form-data' id='upload_form'>"
-     "<input type='file' name='update'>"
-          "<input type='submit' value='Update'>"
-      "</form>"
-   "<div id='prg'>progress: 0%</div>"
-   "<script>"
+
+/*
+   Server Index Page
+*/
+
+const char* serverIndex =
+    "<script src='https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js'></script>"
+    "<form method='POST' action='#' enctype='multipart/form-data' id='upload_form'>"
+    "<input type='file' name='update'>"
+    "<input type='submit' value='Update'>"
+    "</form>"
+    "<div id='prg'>progress: 0%</div>"
+    "<script>"
     "$('form').submit(function(e){"
     "e.preventDefault();"
     "var form = $('#upload_form')[0];"
@@ -104,29 +109,41 @@ WebServer server(80);
     "},"
     "success:function(d, s) {"
     "console.log('success!')"
-   "},"
-   "error: function (a, b, c) {"
-   "}"
-   "});"
-   "});"
-   "</script>";
+    "},"
+    "error: function (a, b, c) {"
+    "}"
+    "});"
+    "});"
+  "</script>";
 
 /*
- * setup function
- */
+   setup function
+*/
 void setup(void) {
   Serial.begin(115200);
 
-  // ledpins
-   pinMode(32, OUTPUT);
-   pinMode(33, OUTPUT);
-    pinMode(CS_SD, OUTPUT);
+  // Led pin enable
+  pinMode(LEDPIN_BAT, OUTPUT);
+  pinMode(LEDPIN, OUTPUT);
+  
+  digitalWrite(LEDPIN_BAT, LOW);   // turn the
+  digitalWrite(LEDPIN, LOW);   // turn the
 
-     pinMode(CS_SD, LOW);
 
-    digitalWrite(32, LOW);   // turn the 
-    digitalWrite(33, LOW);   // turn the
+  // Chip initializing selects pins 
+  pinMode(CS_SD, OUTPUT);
+  pinMode(CS_SD, HIGH);
 
+  pinMode(CS_ALT, OUTPUT);
+  pinMode(CS_ALT, HIGH);
+
+  pinMode(CS_LORA, OUTPUT);
+  pinMode(CS_LORA, HIGH);
+
+  SPI.begin(SCK, MISO, MOSI, CS_ALT);
+  SPI.setClockDivider(SPI_CLOCK_DIV64);
+
+  LoRa.setPins(CS_LORA, RST_LORA, DATA_LORA);
 
   // Connect to WiFi network
   WiFi.begin(ssid, password);
@@ -137,8 +154,8 @@ void setup(void) {
     delay(500);
     Serial.print(".");
   }
-   Serial.println("IT WORKED WOOOPOPOOPOW");
-   
+  Serial.println("IT WORKED WOOOPOPOOPOW");
+
   Serial.println("");
   Serial.print("Connected to ");
   Serial.println(ssid);
@@ -187,46 +204,22 @@ void setup(void) {
       }
     }
   });
-  
+
   server.begin();
 
-    // SPI initialization
+Serial.println("Pulling down LoRa");
+  digitalWrite(CS_LORA, LOW);
   
-  pinMode(CS_LORA,OUTPUT);  
-  pinMode(CS_ALT,OUTPUT);  
-  digitalWrite(CS_LORA,HIGH);
-  digitalWrite(CS_ALT,HIGH);
-
-  pinMode(SCK, OUTPUT);
-pinMode(MOSI, OUTPUT);
-pinMode(MISO, INPUT);
-pinMode(CS_LORA, OUTPUT);
-
- // SPI.setClockDivider(SPI_CLOCK_DIV32);
-  
-  SPI.begin(SCK, MISO, MOSI, CS_ALT);
-
-  digitalWrite(CS_LORA,LOW);
-  
-  LoRa.setPins(CS_LORA, RST_LORA, DATA_LORA);
-  LoRa.setSPI(SPI);
- Serial.print("MOSI:");  Serial.println(MOSI);
-  Serial.print("MISO:");  Serial.println(MISO);
-  Serial.print("SCK:");  Serial.println(SCK);
-   Serial.print("CS_LORA");  Serial.println(CS_LORA);
-//      Serial.print("SPI");  Serial.println(SPI._ss);
-
-    
-    //digitalWrite(CS_LORA,LOW);
-    while (!LoRa.begin(433E6) && counter<10) {
+Serial.println("Initializing LoRa");
+  while (!LoRa.begin(433E6) && counter < 20) {
     Serial.print(counter); Serial.print(", ");
     counter++;
     delay(500);
   }
-  
-    digitalWrite(CS_LORA,HIGH);
-    
-  if ( counter >=10) {
+Serial.println("writing LoRa high");
+  digitalWrite(CS_LORA, HIGH);
+
+  if ( counter >= 20) {
     no_LoRa = 1;
     Serial.println(""); Serial.println("LoRa Initializing failed!");
   }
@@ -234,71 +227,69 @@ pinMode(CS_LORA, OUTPUT);
     LoRa.setSyncWord(0xF3);
     Serial.println("LoRa Initializing OK!");
   }
-  
-   // Change sync word (0xF3) to match the receiver
+  counter= 0;
+
+  // Change sync word (0xF3) to match the receiver
   // The sync word assures you don't get LoRa messages from other LoRa transceivers
   // ranges from 0-0xFF
 
-  
+
 }
 
 void loop(void) {
+  Serial.println("Made it to the loop");
   server.handleClient();
   delay(1);
-  digitalWrite(32, HIGH);   // turn the 
-
-
-// Altimeter handling
-//reading value c1 from the PROM to check if connectivity can be made
-/*  digitalWrite(CS_ALT,LOW);
   
-  SPI.write(0xA0 | 1 << 1);
-//   int hi = SPI.write(0);
-//   int low = SPI.write(0);
-   digitalWrite(CS_ALT,HIGH);
-   Serial.println(0<< 8 );*/
- digitalWrite(CS_ALT,LOW);
-  SPI.transfer(0x44); //ADC conversion command
-  delay(1);
+ 
+  digitalWrite(LEDPIN, HIGH);  
 
+  // Altimeter handling
+  digitalWrite(CS_ALT,HIGH);
+  delayMicroseconds(5);
+  digitalWrite(CS_ALT, LOW);
+  SPI.transfer(0x1E); //reset
+  delay(3);
+  digitalWrite(CS_ALT, HIGH);
+  delayMicroseconds(100);
+  digitalWrite(CS_ALT, LOW);
+  delayMicroseconds(10);
+  SPI.transfer(0xA4); //sending 8 bit command
+  delayMicroseconds(20);
+  unsigned int bite1 = SPI.transfer16(0x0000); // sending 0
 
-  // and store read data into three bytes
-  Serial.println("Printing bytes");
-byte byte1 = SPI.transfer(0x00);//ADC conversion read command, first 8 bits
-byte  byte2 = SPI.transfer(0x00);//ADC conversion read command, second 8 bits
- byte byte3 = SPI.transfer(0x00);//ADC conversion read command, third 8 bits
+  printBin16(bite1);
 
-
-  //print the 3 bytes in serial
-  Serial.println(byte1, BIN);
-  Serial.println(byte2, BIN);
-  Serial.println(byte3, BIN);
+  digitalWrite(CS_ALT, HIGH);
+  delay(10);
   Serial.println();
- digitalWrite(CS_ALT,HIGH);
-      digitalWrite(33, HIGH);   // turn the
-  
-delay(500);
-
-// LoRa handling
-// tries to send a packets and increases the packet number every time it has been done
-if (no_LoRa == 0 && counter % 100 == 0){ 
-  digitalWrite(CS_LORA,LOW);
-  Serial.print("Sending packet: ");
-  Serial.println(counter);
-
-  //Send LoRa packet to receiver
-  LoRa.beginPacket();
-  LoRa.print("hello ");
-  LoRa.print(counter);
-  LoRa.endPacket();
 
 
-   digitalWrite(CS_LORA,HIGH);
-}
+  // LoRa handling
+  // tries to send a packets and increases the packet number every time it has been done
+  if (no_LoRa == 0 && counter % 100 == 0) {
+    digitalWrite(CS_LORA, LOW);
+    Serial.print("Sending packet: ");
+    Serial.println(counter);
+
+    //Send LoRa packet to receiver
+    LoRa.beginPacket();
+    LoRa.print("hello ");
+    LoRa.print(counter);
+    LoRa.endPacket();
+
+    digitalWrite(CS_LORA, HIGH);
+  }
 
   counter++;
-    
+  delay(1000);
 
+}
+
+void printBin16(unsigned int aByte) {
+  for (int8_t aBit = 15; aBit >= 0; aBit--)
+    Serial.print(bitRead(aByte, aBit) ? '1' : '0');
+  Serial.println();
 }
 
 void printBin(byte aByte) {
