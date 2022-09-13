@@ -1,3 +1,5 @@
+#include <Arduino.h>
+
 #include <TinyGPSPlus.h>
 #include <SoftwareSerial.h>
 /*
@@ -17,6 +19,14 @@ TinyGPSPlus gps;
 
 // The serial connection to the GPS device
 SoftwareSerial ss(RXPin, TXPin);
+static void printDateTime(TinyGPSDate &d, TinyGPSTime &t);
+static void printInt(unsigned long val, bool valid, int len);
+static void printFloat(float val, bool valid, int len, int prec);
+static void smartDelay(unsigned long ms);
+
+
+
+static void printStr(const char *str, int len);
 
 void setup()
 {
@@ -25,6 +35,7 @@ void setup()
   pinMode(22,INPUT);
   pinMode(2,INPUT); /// THIS WORKS
   Serial.begin(115200);
+  Serial.println("Serial connection made");
   ss.begin(GPSBaud);
 
   Serial.println(F("FullExample.ino"));
