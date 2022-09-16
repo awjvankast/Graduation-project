@@ -12,8 +12,6 @@ TinyGPSPlus gps;
 // The serial connection to the GPS device
 SoftwareSerial ss(RXPin, TXPin);
 
-
-
 unsigned long last = 0UL;
 
 void setup()
