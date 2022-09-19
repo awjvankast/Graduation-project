@@ -1,3 +1,15 @@
+// TODO:
+//functionality
+// - implement OTA updating
+// - implement both LoRa receive code
+// - implement logging onto webserver and SD
+
+//structure
+// - create multiple .cpp files with a header file to run the test code from the main code at startup
+// - look into more efficient printing than print and  println
+// - 
+
+
 #include <Arduino.h>
 
 #include <SPI.h>
@@ -5,6 +17,7 @@
 
 #include <TinyGPSPlus.h>
 #include <SoftwareSerial.h>
+#include <SD.h>
 
 #define SCK 18
 #define MISO 23
@@ -12,6 +25,7 @@
 
 #define SS_LORA 15
 #define SS_ALT 0
+#define SS_SD 5
 
 #define LORA_RESET 13
 #define LORA_DATA 4
@@ -29,6 +43,8 @@
 // The TinyGPSPlus object and initializing software serial
 TinyGPSPlus gps;
 SoftwareSerial ss(RX_GPS, TX_GPS);
+
+File myFile;
 
 void printBin(byte aByte);
 void printBin16(unsigned int aByte);
@@ -48,6 +64,7 @@ void setup()
   pinMode(STANDBY_GPS, INPUT);
   pinMode(RESET_GPS, INPUT);
 
+  // Setting the chip/slave select pins of the SPI modules
   pinMode(SS_LORA, OUTPUT);
   digitalWrite(SS_LORA, HIGH);
   pinMode(SS_ALT, OUTPUT);
@@ -70,28 +87,48 @@ void setup()
   Serial.println(SS_LORA);
   Serial.print("    SS_ALT:");
   Serial.println(SS_ALT);
-//  Serial.print("SS_SD:");
-//  Serial.println(SS_SD);
+  Serial.print("    SS_SD:");
+  Serial.println(SS_SD);
   Serial.println("");
 
+  session_identifier = random(11111, 99999);
+  Serial.print("Session identifier: "); Serial.println(session_identifier); Serial.println("");
+
+  Serial.println("--- LORA INITIALIZAITON ---");
   digitalWrite(SS_LORA, LOW);
   LoRa.setPins(SS_LORA, LORA_RESET, LORA_DATA);
-
-  Serial.println("Starting LoRa initialization");
-  while (!LoRa.begin(433E6))
+  do
   {
     Serial.print(".");
     delay(500);
   }
+  while (!LoRa.begin(433E6));
   LoRa.setSyncWord(SYNC_LORA);
-  Serial.println(""); Serial.println("LoRa initialized!");
-  
-  session_identifier = random(11111, 99999);
-  Serial.print("Session identifier: ");
-  Serial.println(session_identifier);
+  Serial.println(""); Serial.println("LoRa initialized!"); Serial.println();
   digitalWrite(SS_LORA,HIGH);
 
-  Serial.println("");
+  Serial.println("--- SD INITIALIZATION ---");
+  do 
+  {
+    Serial.print(".");
+    delay(500);
+  }
+  while (!SD.begin(SS_SD)); 
+  Serial.prinln(""); Serial.println("SD card initialized!"); Serial.println();
+ 
+  Serial.println("Writing test file to SD card");
+  myFile = SD.open("/all_module_test.txt", FILE_WRITE); // check whats happening here
+  // if the file opened okay, write to it:
+  if (myFile) {
+    Serial.print("Writing to SD...");
+    myFile.print("Receiver session ID: ");
+    myFile.println(session_identifier);
+    myFile.close();
+    Serial.println("done");
+  } else {
+  // if the file didn't open, print an error:
+  Serial.println("Error opening SD file");
+  }
 }
 
 void loop()
