@@ -3,21 +3,22 @@
 // - implement OTA updating X
 // - implement both LoRa receive code X
 // - implement logging onto webserver and SD
-//    - Fix data overwriting old data in SD file
+//    - Fix data overwriting old data in SD file X
 
 // structure
 //  - create multiple .cpp files with a header file to run the test code from the main code at startup
-//  - look into more efficient printing than print and  println
+//  - look into more efficient printing than print and  println --> printf can use arguments with %
 //  -
 
 #include <Arduino.h>
 
-#include <SPI.h>
 #include <LoRa.h>
 
 #include <TinyGPSPlus.h>
 #include <SoftwareSerial.h>
+#include <FS.h>
 #include <SD.h>
+#include <SPI.h>
 
 #include "WiFi.h"
 #include "ESPAsyncWebServer.h"
@@ -26,7 +27,7 @@
 
 const char *ssid = "POCO";
 const char *password = "knabobar";
-bool ledState  = 0;
+bool ledState = 0;
 AsyncWebServer server(80);
 AsyncWebSocket ws("/ws");
 
@@ -62,11 +63,14 @@ File myFile;
 void printBin(byte aByte);
 void printBin16(unsigned int aByte);
 String processor(const String &var);
-void notifyClients(); 
+void notifyClients();
 void handleWebSocketMessage(void *arg, uint8_t *data, size_t len);
 void onEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type,
              void *arg, uint8_t *data, size_t len);
 void initWebSocket();
+void initSDCard();
+void writeFile(fs::FS &fs, const char *path, const char *message);
+void appendFile(fs::FS &fs, const char *path, const char *message);
 
 int counter = 0;
 unsigned long session_identifier = 0;
@@ -132,50 +136,23 @@ void setup()
   digitalWrite(SS_LORA, HIGH);
 
   Serial.println("--- SD INITIALIZATION ---");
-  while (!SD.begin(SS_SD))
-  {
-    Serial.print(".");
-    delay(500);
-  }
-  Serial.println("");
+  initSDCard();
   Serial.println("SD card initialized!");
-  Serial.println();
 
-  Serial.println("Writing test file to SD card");
-  myFile = SD.open("/all_modules_test.txt", FILE_WRITE); // check whats happening here
-  // if the file opened okay, write to it:
-  if (myFile)
+  String dataMessage = "Session identifier, " + String(session_identifier) + "\r\n";
+
+  File file = SD.open("/ReceivedMessages.txt");
+  if (!file)
   {
-    Serial.print("Writing to SD all_modules_test.txt...");
-    myFile.print("Transceiver session ID: ");
-    myFile.println(session_identifier);
-    myFile.close();
-    Serial.println("done");
+    Serial.println("File doesn't exist");
+    Serial.println("Creating file...");
+    writeFile(SD, "/ReceivedMessages.txt", dataMessage.c_str());
   }
   else
   {
-    // if the file didn't open, print an error:
-    Serial.println("Error opening SD file");
+    appendFile(SD, "/ReceivedMessages.txt", dataMessage.c_str());
   }
-
-  // Creating columns for received messages
-  myFile = SD.open("/ReceivedMessages.txt", FILE_WRITE);
-   if (myFile)
-  {
-    Serial.print("Writing to SD ReceivedMessages.txt...");
-    myFile.print("Session identifier");
-    myFile.print(",");
-    myFile.println(session_identifier);  
-    
-     myFile.print("Data"); myFile.print(","); myFile.println("RSSI"); 
-     myFile.close();
-     Serial.println("done.");
-  }
-  else
-  {
-    // if the file didn't open, print an error:
-    Serial.println("Error opening SD file");
-  }
+  file.close();
   Serial.println();
 
   Serial.println("--- SPIFFS INITIALIZATION ---");
@@ -206,14 +183,12 @@ void setup()
   Serial.println();
 
   // Route for root / web page
-  server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
-    request->send(SPIFFS, "/index.html", String(), false, processor);
-  });
-  
+  server.on("/", HTTP_GET, [](AsyncWebServerRequest *request)
+            { request->send(SPIFFS, "/index.html", String(), false, processor); });
+
   // Route to load style.css file
-  server.on("/style.css", HTTP_GET, [](AsyncWebServerRequest *request){
-    request->send(SPIFFS, "/style.css", "text/css");
-  });
+  server.on("/style.css", HTTP_GET, [](AsyncWebServerRequest *request)
+            { request->send(SPIFFS, "/style.css", "text/css"); });
 
   // Start ElegantOTA
   AsyncElegantOTA.begin(&server);
@@ -237,35 +212,29 @@ void loop()
   String LoRaData;
   int LoRa_RSSI;
 
-  // If a packet is received, continue to read the data and output it to the 
+  // If a packet is received, continue to read the data and output it to the
   // serial monitor and the SD card
-  if (packetSize) {
+  if (packetSize)
+  {
     // received a packet
     Serial.print("Received packet '");
-  
+
     // Read packet
-    while (LoRa.available()) {
+    while (LoRa.available())
+    {
       LoRaData = LoRa.readString();
       Serial.print(LoRaData);
-      
-    // print RSSI of packet
-    Serial.print("' with RSSI ");
-    LoRa_RSSI = LoRa.packetRssi();
-    Serial.println(LoRa_RSSI);
-     }
-  
-   myFile = SD.open("/ReceivedMessages.txt", FILE_WRITE);
-     if (myFile) {
-     Serial.print("Writing to SD ReceivedMessages.txt...");
-     myFile.print(LoRaData); myFile.print(","); myFile.println(LoRa_RSSI);
-     myFile.close();
-     Serial.println("done.");
-     }
-     else {
-       // if the file didn't open, print an error:
-       Serial.println("error opening SD file");
-       delay(500);
-     }
+
+      // print RSSI of packet
+      Serial.print("' with RSSI ");
+      LoRa_RSSI = LoRa.packetRssi();
+      Serial.println(LoRa_RSSI);
+    }
+
+    String dataMessage = String(LoRaData) + "," + String(LoRa_RSSI) + "\r\n";
+    Serial.print("Writing following message to SD: ");
+    Serial.println(dataMessage);
+    appendFile(SD, "/ReceivedMessages.txt", dataMessage.c_str());
   }
 
   // Dispatch incoming GPS characters
@@ -340,29 +309,36 @@ void printBin16(unsigned int aByte)
   Serial.println();
 }
 
-void notifyClients() {
+void notifyClients()
+{
   ws.textAll(String(ledState));
 }
 
-String processor(const String& var){
+String processor(const String &var)
+{
   Serial.println(var);
-  if(var == "STATE"){
-    if (ledState){
+  if (var == "STATE")
+  {
+    if (ledState)
+    {
       return "ON";
     }
-    else{
+    else
+    {
       return "OFF";
     }
   }
   return String();
-
 }
 
-void handleWebSocketMessage(void *arg, uint8_t *data, size_t len) {
-  AwsFrameInfo *info = (AwsFrameInfo*)arg;
-  if (info->final && info->index == 0 && info->len == len && info->opcode == WS_TEXT) {
+void handleWebSocketMessage(void *arg, uint8_t *data, size_t len)
+{
+  AwsFrameInfo *info = (AwsFrameInfo *)arg;
+  if (info->final && info->index == 0 && info->len == len && info->opcode == WS_TEXT)
+  {
     data[len] = 0;
-    if (strcmp((char*)data, "toggle") == 0) {
+    if (strcmp((char *)data, "toggle") == 0)
+    {
       ledState = !ledState;
       notifyClients();
     }
@@ -370,24 +346,107 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len) {
 }
 
 void onEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type,
-             void *arg, uint8_t *data, size_t len) {
-  switch (type) {
-    case WS_EVT_CONNECT:
-      Serial.printf("WebSocket client #%u connected from %s\n", client->id(), client->remoteIP().toString().c_str());
-      break;
-    case WS_EVT_DISCONNECT:
-      Serial.printf("WebSocket client #%u disconnected\n", client->id());
-      break;
-    case WS_EVT_DATA:
-      handleWebSocketMessage(arg, data, len);
-      break;
-    case WS_EVT_PONG:
-    case WS_EVT_ERROR:
-      break;
+             void *arg, uint8_t *data, size_t len)
+{
+  switch (type)
+  {
+  case WS_EVT_CONNECT:
+    Serial.printf("WebSocket client #%u connected from %s\n", client->id(), client->remoteIP().toString().c_str());
+    break;
+  case WS_EVT_DISCONNECT:
+    Serial.printf("WebSocket client #%u disconnected\n", client->id());
+    break;
+  case WS_EVT_DATA:
+    handleWebSocketMessage(arg, data, len);
+    break;
+  case WS_EVT_PONG:
+  case WS_EVT_ERROR:
+    break;
   }
 }
 
-void initWebSocket() {
+void initWebSocket()
+{
   ws.onEvent(onEvent);
   server.addHandler(&ws);
+}
+
+// Initialize SD card
+void initSDCard()
+{
+  if (!SD.begin(SS_SD))
+  {
+    Serial.println("Card Mount Failed");
+    return;
+  }
+  uint8_t cardType = SD.cardType();
+
+  if (cardType == CARD_NONE)
+  {
+    Serial.println("No SD card attached");
+    return;
+  }
+  Serial.print("SD Card Type: ");
+  if (cardType == CARD_MMC)
+  {
+    Serial.println("MMC");
+  }
+  else if (cardType == CARD_SD)
+  {
+    Serial.println("SDSC");
+  }
+  else if (cardType == CARD_SDHC)
+  {
+    Serial.println("SDHC");
+  }
+  else
+  {
+    Serial.println("UNKNOWN");
+  }
+  uint64_t cardSize = SD.cardSize() / (1024 * 1024);
+  Serial.printf("SD Card Size: %lluMB\n", cardSize);
+}
+
+// Write to the SD card
+void writeFile(fs::FS &fs, const char *path, const char *message)
+{
+  Serial.printf("Writing file: %s\n", path);
+
+  File file = fs.open(path, FILE_WRITE);
+  if (!file)
+  {
+    Serial.println("Failed to open file for writing");
+    return;
+  }
+  if (file.print(message))
+  {
+    Serial.println("File written");
+  }
+  else
+  {
+    Serial.println("Write failed");
+  }
+  file.close();
+}
+
+// Append data to the SD card
+void appendFile(fs::FS &fs, const char *path, const char *message)
+{
+  Serial.printf("Appending to file: %s\n", path);
+
+  File file = fs.open(path, FILE_APPEND);
+  if (!file)
+  {
+    Serial.println("Failed to open file for appending");
+    return;
+  }
+  if (file.print(message))
+  {
+    Serial.println("Message appended");
+  }
+  else
+  {
+    Serial.println("Append failed");
+  }
+  file.close();
 }
