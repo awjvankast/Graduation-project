@@ -7,7 +7,7 @@
     color: white;
   }
   h2 {
-    font-size: 1.5rem;
+    font-size: 1rem;
     font-weight: bold;
     color: #143642;
   }
@@ -20,24 +20,23 @@
   }
   .content {
     padding: 30px;
-    max-width: 600px;
+    max-width: 300px;
     margin: 0 auto;
   }
   .card {
     background-color: #F8F7F9;;
     box-shadow: 2px 2px 12px 1px rgba(140,140,140,.5);
-    padding-top:10px;
-    padding-bottom:20px;
+    padding-top:5px;
+    padding-bottom:10px;
   }
   .button {
-    padding: 15px 50px;
-    font-size: 24px;
+    font-size: 1rem;
     text-align: center;
     outline: none;
     color: #fff;
     background-color: #0f8b8d;
     border: none;
-    border-radius: 5px;
+    border-radius: 2px;
     -webkit-touch-callout: none;
     -webkit-user-select: none;
     -khtml-user-select: none;
@@ -52,7 +51,20 @@
      transform: translateY(2px);
    }
    .state {
-     font-size: 1.5rem;
+     font-size: 1rem;
      color:#8c8c8c;
      font-weight: bold;
    }
+
+   table{ 
+    font-family: arial, sans-serif;
+    border-collapse: collapse;
+    width: 100%;
+   }
+   
+   th, td {
+    border: 1px solid #dddddd;
+  text-align: left;
+  padding: 8px;
+  }
+  

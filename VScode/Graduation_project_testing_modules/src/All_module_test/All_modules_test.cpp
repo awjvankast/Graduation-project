@@ -4,6 +4,7 @@
 // - implement both LoRa receive code X
 // - implement logging onto webserver and SD
 //    - Fix data overwriting old data in SD file X
+// - Add timestamps to data logs, see tutorial in notes 
 
 // structure
 //  - create multiple .cpp files with a header file to run the test code from the main code at startup
@@ -59,6 +60,14 @@ TinyGPSPlus gps;
 SoftwareSerial ss(RX_GPS, TX_GPS);
 
 File myFile;
+
+// Set your Static IP address
+IPAddress local_IP(192, 168, 43, 7); // G == 7
+// Set your Gateway IP address
+IPAddress gateway(192, 168, 43, 7);
+IPAddress subnet(255, 255, 0, 0);
+IPAddress primaryDNS(8, 8, 8, 8); // optional
+IPAddress secondaryDNS(8, 8, 4, 4); // optional
 
 void printBin(byte aByte);
 void printBin16(unsigned int aByte);
@@ -167,6 +176,12 @@ void setup()
 
   // Connect to Wi-Fi
   Serial.println("--- WIFI INITIALIZATION ---");
+
+// Initializing static IP adress
+if (!WiFi.config(local_IP, gateway, subnet, primaryDNS, secondaryDNS)) {
+  Serial.println("STA Failed to configure");
+}
+
   WiFi.begin(ssid, password);
   while (WiFi.status() != WL_CONNECTED)
   {
@@ -189,6 +204,10 @@ void setup()
   // Route to load style.css file
   server.on("/style.css", HTTP_GET, [](AsyncWebServerRequest *request)
             { request->send(SPIFFS, "/style.css", "text/css"); });
+  
+  server.on("/script.js", HTTP_GET, [](AsyncWebServerRequest *request){
+    request->send(SPIFFS, "/script.js", "text/javascript");
+});
 
   // Start ElegantOTA
   AsyncElegantOTA.begin(&server);
