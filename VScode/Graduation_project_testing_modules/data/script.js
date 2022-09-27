@@ -17,14 +17,25 @@ function onClose(event) {
 }
 function onMessage(event) {
   var state;
+  var LoRaData;
+  console.log('Received a notification from ${event.origin}');
+  console.log(event);
+
   if (event.data == "1"){
     state = "ON";
+    document.getElementById('state').innerHTML = state;
   }
-  else{
+  else if(event.data == "0"){
     state = "OFF";
+    document.getElementById('state').innerHTML = state;
   }
-  document.getElementById('state').innerHTML = state;
+  else {
+    LoRaData = event.data;
+    document.getElementById('LoRaData').innerHTML = LoRaData;
+  }
+  
 }
+
 window.addEventListener('load', onLoad);
 function onLoad(event) {
   initWebSocket();

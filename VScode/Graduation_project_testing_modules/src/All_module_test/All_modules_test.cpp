@@ -81,6 +81,8 @@ void initSDCard();
 void writeFile(fs::FS &fs, const char *path, const char *message);
 void appendFile(fs::FS &fs, const char *path, const char *message);
 
+void updateHTML_LoRa(String LoRaMessage);
+
 int counter = 0;
 unsigned long session_identifier = 0;
 unsigned long last = 0UL;
@@ -254,7 +256,13 @@ void loop()
     Serial.print("Writing following message to SD: ");
     Serial.println(dataMessage);
     appendFile(SD, "/ReceivedMessages.txt", dataMessage.c_str());
+
+     // Send the LoRa data to the HTML page
+  //updateHTML_LoRa(LoRaData);
+  ws.textAll(LoRaData);
   }
+
+ 
 
   // Dispatch incoming GPS characters
   while (ss.available() > 0)
@@ -468,4 +476,8 @@ void appendFile(fs::FS &fs, const char *path, const char *message)
     Serial.println("Append failed");
   }
   file.close();
+}
+
+void updateHTML_LoRa(String LoRaMessage ){
+  
 }
