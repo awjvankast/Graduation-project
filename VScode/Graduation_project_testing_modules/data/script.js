@@ -1,5 +1,7 @@
 var gateway = `ws://${window.location.hostname}/ws`;
 var websocket;
+
+
 function initWebSocket() {
   console.log('Trying to open a WebSocket connection...');
   websocket = new WebSocket(gateway);
@@ -18,6 +20,16 @@ function onClose(event) {
 function onMessage(event) {
   var state;
   var LoRaData;
+  var timeData;
+  var GPSData;
+  var AltData;
+  var SD;
+
+  var today = new Date();
+  // today.getFullYear()+'-'+(today.getMonth()+1)+'-'+today.getDate() + '\n' +
+  var now =  today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
+  document.getElementById('now').innerHTML = now;
+
   console.log('Received a notification from ${event.origin}');
   console.log(event);
 
@@ -29,9 +41,26 @@ function onMessage(event) {
     state = "OFF";
     document.getElementById('state').innerHTML = state;
   }
-  else {
+  else if(event.data.charAt(0)=="I") {
     LoRaData = event.data;
+    console.log('Correctly identified first characte');
     document.getElementById('LoRaData').innerHTML = LoRaData;
+  }
+  else if (event.data.charAt(0)=="G"){
+    GPSData = event.data;
+    document.getElementById('GPSData').innerHTML = GPSData;
+  }
+  else if (event.data.charAt(0)=="A"){
+    AltData = event.data;
+    document.getElementById('AltData').innerHTML = AltData;
+  }
+  else if (event.data == "SDP"){
+    SD = "Present";
+    document.getElementById('SD').innerHTML = SD;
+  }
+  else if (event.data == "SDNP"){
+    SD = "Not present";
+    document.getElementById('SD').innerHTML = SD;
   }
   
 }

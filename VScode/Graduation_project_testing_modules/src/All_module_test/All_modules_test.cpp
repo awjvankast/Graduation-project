@@ -2,9 +2,12 @@
 // functionality
 // - implement OTA updating X
 // - implement both LoRa receive code X
-// - implement logging onto webserver and SD
+// - implement logging onto webserver and SD X
 //    - Fix data overwriting old data in SD file X
-// - Add timestamps to data logs, see tutorial in notes 
+// - Add timestamps to data logs, see tutorial in notes X
+// - Make periodic SD card presence check and log it to webpage 
+// - Fix cables and plugs of battery pack and usb connector
+// - Get more SD cards
 
 // structure
 //  - create multiple .cpp files with a header file to run the test code from the main code at startup
@@ -25,6 +28,10 @@
 #include "ESPAsyncWebServer.h"
 #include "SPIFFS.h"
 #include <AsyncElegantOTA.h>
+
+// CHANGE THIS for every different node
+String NodeName = "Honnold";
+int last_IP_number = 8;
 
 const char *ssid = "POCO";
 const char *password = "knabobar";
@@ -62,11 +69,11 @@ SoftwareSerial ss(RX_GPS, TX_GPS);
 File myFile;
 
 // Set your Static IP address
-IPAddress local_IP(192, 168, 43, 7); // G == 7
+IPAddress local_IP(192, 168, 43, last_IP_number); // A = 1, B = 2, ...
 // Set your Gateway IP address
-IPAddress gateway(192, 168, 43, 7);
+IPAddress gateway(192, 168, 43, last_IP_number);
 IPAddress subnet(255, 255, 0, 0);
-IPAddress primaryDNS(8, 8, 8, 8); // optional
+IPAddress primaryDNS(8, 8, 8, 8);   // optional
 IPAddress secondaryDNS(8, 8, 4, 4); // optional
 
 void printBin(byte aByte);
@@ -80,12 +87,15 @@ void initWebSocket();
 void initSDCard();
 void writeFile(fs::FS &fs, const char *path, const char *message);
 void appendFile(fs::FS &fs, const char *path, const char *message);
+void printLocalTime();
 
 void updateHTML_LoRa(String LoRaMessage);
 
 int counter = 0;
 unsigned long session_identifier = 0;
 unsigned long last = 0UL;
+char buffer[50];
+int SD_present = 0;
 
 void setup()
 {
@@ -148,7 +158,6 @@ void setup()
 
   Serial.println("--- SD INITIALIZATION ---");
   initSDCard();
-  Serial.println("SD card initialized!");
 
   String dataMessage = "Session identifier, " + String(session_identifier) + "\r\n";
 
@@ -179,10 +188,11 @@ void setup()
   // Connect to Wi-Fi
   Serial.println("--- WIFI INITIALIZATION ---");
 
-// Initializing static IP adress
-if (!WiFi.config(local_IP, gateway, subnet, primaryDNS, secondaryDNS)) {
-  Serial.println("STA Failed to configure");
-}
+  // Initializing static IP adress
+  if (!WiFi.config(local_IP, gateway, subnet, primaryDNS, secondaryDNS))
+  {
+    Serial.println("STA Failed to configure");
+  }
 
   WiFi.begin(ssid, password);
   while (WiFi.status() != WL_CONNECTED)
@@ -206,15 +216,22 @@ if (!WiFi.config(local_IP, gateway, subnet, primaryDNS, secondaryDNS)) {
   // Route to load style.css file
   server.on("/style.css", HTTP_GET, [](AsyncWebServerRequest *request)
             { request->send(SPIFFS, "/style.css", "text/css"); });
-  
-  server.on("/script.js", HTTP_GET, [](AsyncWebServerRequest *request){
-    request->send(SPIFFS, "/script.js", "text/javascript");
-});
+
+  // Royute to load script.js file
+  server.on("/script.js", HTTP_GET, [](AsyncWebServerRequest *request)
+            { request->send(SPIFFS, "/script.js", "text/javascript"); });
 
   // Start ElegantOTA
   AsyncElegantOTA.begin(&server);
   // Start server
   server.begin();
+
+  if(SD_present){
+    ws.textAll("SDP");
+  }
+  else{
+    ws.textAll("SDNP");
+  }
 }
 
 unsigned long prev_time = millis();
@@ -257,12 +274,10 @@ void loop()
     Serial.println(dataMessage);
     appendFile(SD, "/ReceivedMessages.txt", dataMessage.c_str());
 
-     // Send the LoRa data to the HTML page
-  //updateHTML_LoRa(LoRaData);
-  ws.textAll(LoRaData);
+    // Send the LoRa data to the HTML page
+    // updateHTML_LoRa(LoRaData);
+    ws.textAll(LoRaData);
   }
-
- 
 
   // Dispatch incoming GPS characters
   while (ss.available() > 0)
@@ -270,6 +285,7 @@ void loop()
 
   if (millis() - print_period > prev_time)
   {
+
     // Check a value of the altimeter
     digitalWrite(SS_ALT, LOW);
     SPI.transfer(0x1E); // reset
@@ -283,9 +299,14 @@ void loop()
     unsigned int bite2 = SPI.transfer16(0x0000); // sending 0
     Serial.print("Byte from reading PROM altimeter: ");
     printBin16(bite2);
+    Serial.print(" In dec form:"); Serial.print(bite2);
 
     digitalWrite(SS_ALT, HIGH);
     delayMicroseconds(10);
+
+    // Sending altdata to webpage
+    Serial.print("Sending following to webpage: ");
+    ws.textAll("Alt: " + String(bite2));
 
     // Send LoRa packet to receiver
     Serial.print("Sending packet: ");
@@ -293,7 +314,7 @@ void loop()
 
     digitalWrite(SS_LORA, LOW);
     LoRa.beginPacket();
-    LoRa.print("ID: ");
+    LoRa.print(String("ID " + NodeName + ":"));
     LoRa.print(session_identifier);
     LoRa.print(" packet_number: ");
     LoRa.print(counter);
@@ -302,7 +323,10 @@ void loop()
     digitalWrite(SS_LORA, HIGH);
     delayMicroseconds(100);
     prev_time = millis();
-
+    
+    String GPS_time;
+    String long_lat;
+    String num_sat; 
     if (gps.time.isUpdated())
     {
       Serial.print(F("TIME       Fix Age="));
@@ -317,10 +341,50 @@ void loop()
       Serial.print(gps.time.second());
       Serial.print(F(" Hundredths="));
       Serial.println(gps.time.centisecond());
+
+      GPS_time = String(gps.time.hour()) +":" + String(gps.time.minute()) + ":" + String(gps.time.second());
+      sprintf(buffer, "GPS time to be send: %s", GPS_time);
+      Serial.println(buffer);
     }
+    if (gps.satellites.isUpdated())
+  {
+    Serial.print(F("SATELLITES Fix Age="));
+    Serial.print(gps.satellites.age());
+    Serial.print(F("ms Value="));
+    Serial.println(gps.satellites.value());
+
+    num_sat = String(gps.satellites.value());
+    sprintf(buffer, "GPS number of sattelites to be send: %s", num_sat);
+      Serial.println(buffer);
+  }
+   if (gps.location.isUpdated())
+  {
+    Serial.println("waTCH THIS"); Serial.write(ss.read());
+    Serial.print(F("LOCATION   Fix Age="));
+    Serial.print(gps.location.age());
+    Serial.print(F("ms Raw Lat="));
+    Serial.print(gps.location.rawLat().negative ? "-" : "+");
+    Serial.print(gps.location.rawLat().deg);
+    Serial.print("[+");
+    Serial.print(gps.location.rawLat().billionths);
+    Serial.print(F(" billionths],  Raw Long="));
+    Serial.print(gps.location.rawLng().negative ? "-" : "+");
+    Serial.print(gps.location.rawLng().deg);
+    Serial.print("[+");
+    Serial.print(gps.location.rawLng().billionths);
+    Serial.print(F(" billionths],  Lat="));
+    Serial.print(gps.location.lat(), 6);
+    Serial.print(F(" Long="));
+    Serial.println(gps.location.lng(), 6);
+
+    long_lat = "Lat= " + String(gps.location.lat()) + " Long= " + String(gps.location.lng());
+    sprintf(buffer, "GPS time to be send: %s", long_lat);
+      Serial.println(buffer);
+  }
+   ws.textAll("GPS: " + GPS_time + " " + long_lat + " " + num_sat);
+
   }
 
-  AsyncElegantOTA.loop();
 }
 
 void printBin(byte aByte)
@@ -341,6 +405,7 @@ void notifyClients()
   ws.textAll(String(ledState));
 }
 
+// To set the initial value of the button
 String processor(const String &var)
 {
   Serial.println(var);
@@ -406,6 +471,7 @@ void initSDCard()
     Serial.println("Card Mount Failed");
     return;
   }
+  SD_present = 1;
   uint8_t cardType = SD.cardType();
 
   if (cardType == CARD_NONE)
@@ -478,6 +544,6 @@ void appendFile(fs::FS &fs, const char *path, const char *message)
   file.close();
 }
 
-void updateHTML_LoRa(String LoRaMessage ){
-  
+void updateHTML_LoRa(String LoRaMessage)
+{
 }
