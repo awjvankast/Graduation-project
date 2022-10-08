@@ -1,18 +1,11 @@
-// TODO:
-// functionality
-// - implement OTA updating X
-// - implement both LoRa receive code X
-// - implement logging onto webserver and SD X
-//    - Fix data overwriting old data in SD file X
-// - Add timestamps to data logs, see tutorial in notes X
-// - Make periodic SD card presence check and log it to webpage 
-// - Fix cables and plugs of battery pack and usb connector
-// - Get more SD cards
+// Tx implementation for basic RRSI test
+// DESCRIPTION
+// The Tx node only sends data over LoRa from it's own sensors and it's own ID
 
-// structure
-//  - create multiple .cpp files with a header file to run the test code from the main code at startup
-//  - look into more efficient printing than print and  println --> printf can use arguments with %
-//  -
+// TODO
+// - Implement library to get the altimeter values from the SPI bus
+// - Low power implementation LED
+// - set spreading factor better
 
 #include <Arduino.h>
 
@@ -30,8 +23,8 @@
 #include <AsyncElegantOTA.h>
 
 // CHANGE THIS for every different node
-String NodeName = "Famke";
-int last_IP_number = 6;
+String NodeName = "Alex";
+int last_IP_number = 1;
 
 const char *ssid = "POCO";
 const char *password = "knabobar";
@@ -58,12 +51,13 @@ AsyncWebSocket ws("/ws");
 #define STANDBY_GPS 22
 #define RESET_GPS 2
 
-#define BAT_SENSE 35
-
-#define LED_LOW_BAT 33
 #define LED_WEBSERVER 32
 
 #define GPSBAUD 9600
+#define SF_FACTOR 9
+
+// Period in ms over which a new message will be send
+#define SEND_PERIOD 500
 
 // The TinyGPSPlus object and initializing software serial
 TinyGPSPlus gps;
@@ -117,52 +111,13 @@ void setup()
   pinMode(SS_ALT, OUTPUT);
   digitalWrite(SS_ALT, HIGH);
 
-  // Setting the voltage sensor and low battery pin
-  // Dropout voltage is 120 mV. So with a safety margin: 3.3 + .12 = 3.42 V
-  // Fully charged the 3 AAA batteries provide 4.5 V
-  pinMode(BAT_SENSE, INPUT);
-  pinMode(LED_LOW_BAT, OUTPUT);
-  // The multiply two comes from the voltage divider circuit for measuring voltages above 3.3V
-  float battery_voltage = analogRead(BAT_SENSE)/float(4095)*float(3.3)*float(2);
-  //Serial.print("Battery voltage: "); Serial.println(battery_voltage);
-  //Serial.print("Analog Read: "); Serial.println(analogRead(BAT_SENSE));
-  if(battery_voltage < 3.42) {
-    Serial.println("LOW BATTERY WARNING!");
-     Serial.print("Battery voltage: "); Serial.println(battery_voltage);
-    digitalWrite(LED_LOW_BAT, HIGH);
-  }
-  else{
-    digitalWrite(LED_LOW_BAT, LOW);
-  }
-
-
-  // Setting the LED to be controlled by the webserver
-  pinMode(LED_WEBSERVER, OUTPUT);
-
-  // Software serial settings and start
   ss.begin(GPSBAUD);
-
-  // SPI bus settings and start
   SPI.begin(SCK, MISO, MOSI, SS_ALT);
   SPI.setClockDivider(SPI_CLOCK_DIV64);
 
-  // Initialization prints
-  Serial.println("------------- Performing basic module test -------------");
-  Serial.println("Testing LoRa, altimeter, GPS and SD functionality:");
-  Serial.println("--- SPI PINS ---");
-  Serial.print("    MOSI:");
-  Serial.println(MOSI);
-  Serial.print("    MISO:");
-  Serial.println(MISO);
-  Serial.print("    SCK:");
-  Serial.println(SCK);
-  Serial.print("    SS_LORA:");
-  Serial.println(SS_LORA);
-  Serial.print("    SS_ALT:");
-  Serial.println(SS_ALT);
-  Serial.print("    SS_SD:");
-  Serial.println(SS_SD);
-  Serial.println("");
+  pinMode(LED_WEBSERVER, OUTPUT);
+
+  Serial.println("------------- RSSI test Transmitter node -------------");
 
   session_identifier = random(11111, 99999);
   Serial.print("Session identifier: ");
@@ -180,6 +135,7 @@ void setup()
   LoRa.setSyncWord(SYNC_LORA);
   Serial.println("");
   Serial.println("LoRa initialized!");
+  LoRa.setSpreadingFactor(SF_FACTOR);
   Serial.println();
   digitalWrite(SS_LORA, HIGH);
 
@@ -262,7 +218,6 @@ void setup()
 }
 
 unsigned long prev_time = millis();
-unsigned long print_period = 2000;
 
 void loop()
 {
@@ -281,10 +236,8 @@ void loop()
   // serial monitor and the SD card
   if (packetSize)
   {
-    // received a packet
-    Serial.print("Received packet '");
 
-    // Read packet
+    // Read packet, only used for debugging purposes
     while (LoRa.available())
     {
       LoRaData = LoRa.readString();
@@ -296,11 +249,6 @@ void loop()
       Serial.println(LoRa_RSSI);
     }
 
-    String dataMessage = String(LoRaData) + "," + String(LoRa_RSSI) + "\r\n";
-    Serial.print("Writing following message to SD: ");
-    Serial.println(dataMessage);
-    appendFile(SD, "/ReceivedMessages.txt", dataMessage.c_str());
-
     // Send the LoRa data to the HTML page
     // updateHTML_LoRa(LoRaData);
     ws.textAll(LoRaData);
@@ -310,49 +258,10 @@ void loop()
   while (ss.available() > 0)
     gps.encode(ss.read());
 
-  if (millis() - print_period > prev_time)
+  if (millis() - SEND_PERIOD > prev_time)
   {
-
-    // Check a value of the altimeter
-    digitalWrite(SS_ALT, LOW);
-    SPI.transfer(0x1E); // reset
-    delay(3);
-    digitalWrite(SS_ALT, HIGH);
-    delayMicroseconds(100);
-    digitalWrite(SS_ALT, LOW);
-    delayMicroseconds(10);
-    SPI.transfer(0xA4); // sending 8 bit command
-    delayMicroseconds(20);
-    unsigned int bite2 = SPI.transfer16(0x0000); // sending 0
-    Serial.print("Byte from reading PROM altimeter: ");
-    printBin16(bite2);
-    Serial.print(" In dec form:"); Serial.print(bite2);
-
-    digitalWrite(SS_ALT, HIGH);
-    delayMicroseconds(10);
-
-    // Sending altdata to webpage
-    Serial.print("Sending following to webpage: ");
-    ws.textAll("Alt: " + String(bite2));
-
-    // Send LoRa packet to receiver
-    Serial.print("Sending packet: ");
-    Serial.println(counter);
-
-    digitalWrite(SS_LORA, LOW);
-    LoRa.beginPacket();
-    LoRa.print(String("ID " + NodeName + ":"));
-    LoRa.print(session_identifier);
-    LoRa.print(" packet_number: ");
-    LoRa.print(counter);
-    LoRa.endPacket();
-    counter++;
-    digitalWrite(SS_LORA, HIGH);
-    delayMicroseconds(100);
-    prev_time = millis();
-    
-    String GPS_time;
-    String long_lat;
+    String GPS_time ;
+    String long_lat ;
     String num_sat; 
     if (gps.time.isUpdated())
     {
@@ -386,7 +295,7 @@ void loop()
   }
    if (gps.location.isUpdated())
   {
-    Serial.println("waTCH THIS"); Serial.write(ss.read());
+    Serial.write(ss.read());
     Serial.print(F("LOCATION   Fix Age="));
     Serial.print(gps.location.age());
     Serial.print(F("ms Raw Lat="));
@@ -409,6 +318,49 @@ void loop()
       Serial.println(buffer);
   }
    ws.textAll("GPS: " + GPS_time + " " + long_lat + " " + num_sat);
+
+    // Check a value of the altimeter
+    digitalWrite(SS_ALT, LOW);
+    SPI.transfer(0x1E); // reset
+    delay(3);
+    digitalWrite(SS_ALT, HIGH);
+    delayMicroseconds(100);
+    digitalWrite(SS_ALT, LOW);
+    delayMicroseconds(10);
+    SPI.transfer(0xA4); // sending 8 bit command
+    delayMicroseconds(20);
+    unsigned int bite2 = SPI.transfer16(0x0000); // sending 0
+    Serial.print("Byte from reading PROM altimeter: ");
+    printBin16(bite2);
+    Serial.print(" In dec form:"); Serial.print(bite2);
+
+    digitalWrite(SS_ALT, HIGH);
+    delayMicroseconds(10);
+
+    // Sending altdata to webpage
+    Serial.print("Sending following to webpage: ");
+    ws.textAll("Alt: " + String(bite2));
+
+    // Send LoRa packet to receiver
+    Serial.print("Sending packet: ");
+    Serial.println(counter);
+
+    digitalWrite(SS_LORA, LOW);
+    LoRa.beginPacket();
+    LoRa.print(String("ID " + NodeName + ":"));
+    LoRa.print(session_identifier);
+    LoRa.print(" packet_number: ");
+    LoRa.print(counter);
+    LoRa.print(", GPS time:"); LoRa.print(GPS_time);
+    LoRa.print(", GPS location:"); LoRa.print(long_lat);
+    LoRa.print(", Number of sat:"); LoRa.print(num_sat);
+    LoRa.endPacket();
+    counter++;
+    digitalWrite(SS_LORA, HIGH);
+    delayMicroseconds(100);
+    prev_time = millis();
+    
+
 
   }
 
