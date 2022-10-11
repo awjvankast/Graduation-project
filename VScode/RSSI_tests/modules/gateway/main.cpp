@@ -6,7 +6,7 @@
 // - Low power implementation LED X
 // - set spreading factor better -> set to 9 now (range 7-12), increase in SF is higher range but lower data and higher power consumption
 // - Set the correct form for GPS to increase accuracy and decrease speed
-// - Adjust Javascript for correct printing to webpage
+// - Adjust Javascript for correct printing to webpage X
 
 #include "basic_module_functions.h"
 
@@ -41,8 +41,9 @@ void setup()
   all_modules_initialization();
 }
 
-unsigned long prev_time = millis();
 unsigned long sensor_update_period = 5000;
+unsigned long prev_time = millis()+ sensor_update_period;
+
 
 void loop()
 {
@@ -68,9 +69,9 @@ void loop()
     unsigned int bite2 = retrieve_altimeter_value();
 
     // Send GPS data to HTML page
-    ws.textAll("GPS: " + GPS_time + " " + lat_long + " " + num_sat);
+    ws.textAll("Z: " + GPS_time + " " + lat_long + " " + num_sat);
     // Sending altdata to webpage
-    ws.textAll("Alti: " + String(bite2));
+    ws.textAll("Q: " + String(bite2));
 
     prev_time = millis();
   }
@@ -104,7 +105,7 @@ void loop()
     // if so, save it to SD
     if (LoRaData.charAt(0) >= 'B' && LoRaData.charAt(0) <= 'G')
     {
-      String dataMessage = String(LoRaData);
+      String dataMessage = String( String(LoRaData) + "\r\n");
       appendFile(SD, "/ReceivedMessages.txt", dataMessage.c_str());
 
       digitalWrite(SS_LORA, HIGH);

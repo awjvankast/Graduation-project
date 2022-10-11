@@ -16,11 +16,12 @@ extern int ledState;
 
 char buffer[50];
 
-    String GPS_time;
-    String long_lat;
-    String num_sat;
+String GPS_time;
+String lat_long;
+String num_sat;
 
-void pin_SPI_initialization(){
+void pin_SPI_initialization()
+{
   // Leave all the GPS pins which are not used floating, recommended by datasheet
   pinMode(GPS_NC, INPUT);
   pinMode(PPS_GPS, INPUT);
@@ -41,15 +42,18 @@ void pin_SPI_initialization(){
   pinMode(BAT_SENSE, INPUT);
   pinMode(LED_LOW_BAT, OUTPUT);
   // The multiply two comes from the voltage divider circuit for measuring voltages above 3.3V
-  float battery_voltage = analogRead(BAT_SENSE)/float(4095)*float(3.3)*float(2);
-  //Serial.print("Battery voltage: "); Serial.println(battery_voltage);
-  //Serial.print("Analog Read: "); Serial.println(analogRead(BAT_SENSE));
-  if(battery_voltage < 3.42) {
+  float battery_voltage = analogRead(BAT_SENSE) / float(4095) * float(3.3) * float(2);
+  // Serial.print("Battery voltage: "); Serial.println(battery_voltage);
+  // Serial.print("Analog Read: "); Serial.println(analogRead(BAT_SENSE));
+  if (battery_voltage < 3.42)
+  {
     Serial.println("LOW BATTERY WARNING!");
-     Serial.print("Battery voltage: "); Serial.println(battery_voltage);
+    Serial.print("Battery voltage: ");
+    Serial.println(battery_voltage);
     digitalWrite(LED_LOW_BAT, HIGH);
   }
-  else{
+  else
+  {
     digitalWrite(LED_LOW_BAT, LOW);
   }
 
@@ -57,17 +61,18 @@ void pin_SPI_initialization(){
   SPI.setClockDivider(SPI_CLOCK_DIV64);
 }
 
-void all_modules_initialization(){
+void all_modules_initialization()
+{
   Serial.println("Starting all modules initialization");
-    // Set your Static IP address
-    IPAddress local_IP(192, 168, 43, last_IP_number); // A = 1, B = 2, ...
+  // Set your Static IP address
+  IPAddress local_IP(192, 168, 43, last_IP_number); // A = 1, B = 2, ...
   // Set your Gateway IP address
   IPAddress gateway(192, 168, 43, last_IP_number);
   IPAddress subnet(255, 255, 0, 0);
   IPAddress primaryDNS(8, 8, 8, 8);   // optional
   IPAddress secondaryDNS(8, 8, 4, 4); // optional
 
-    session_identifier = random(11111, 99999);
+  session_identifier = random(11111, 99999);
   Serial.print("Session identifier: ");
   Serial.println(session_identifier);
   Serial.println("");
@@ -324,81 +329,83 @@ void notifyClients()
   ws.textAll(String(ledState));
 }
 
-unsigned int retrieve_altimeter_value(){
+unsigned int retrieve_altimeter_value()
+{
   digitalWrite(SS_ALT, LOW);
-    SPI.transfer(0x1E); // reset
-    delay(3);
-    digitalWrite(SS_ALT, HIGH);
-    delayMicroseconds(100);
-    digitalWrite(SS_ALT, LOW);
-    delayMicroseconds(10);
-    SPI.transfer(0xA4); // sending 8 bit command
-    delayMicroseconds(20);
-    unsigned int bite2 = SPI.transfer16(0x0000); // sending 0
-    Serial.print("Byte from reading PROM altimeter: ");
-    printBin16(bite2);
-    Serial.print(" In dec form:");
-    Serial.print(bite2);
+  SPI.transfer(0x1E); // reset
+  delay(3);
+  digitalWrite(SS_ALT, HIGH);
+  delayMicroseconds(100);
+  digitalWrite(SS_ALT, LOW);
+  delayMicroseconds(10);
+  SPI.transfer(0xA4); // sending 8 bit command
+  delayMicroseconds(20);
+  unsigned int bite2 = SPI.transfer16(0x0000); // sending 0
+  Serial.print("Byte from reading PROM altimeter: ");
+  printBin16(bite2);
+  Serial.print(" In dec form:");
+  Serial.print(bite2);
 
-    digitalWrite(SS_ALT, HIGH);
-    delayMicroseconds(10);
+  digitalWrite(SS_ALT, HIGH);
+  delayMicroseconds(10);
 
-    return bite2;
+  return bite2;
 }
 
-  void check_GPS_time_loc_sat(){
+void check_GPS_time_loc_sat()
+{
 
-    if (gps.time.isUpdated())
-    {
-      Serial.print(F("TIME       Fix Age="));
-      Serial.print(gps.time.age());
-      Serial.print(F("ms Raw="));
-      Serial.print(gps.time.value());
-      Serial.print(F(" Hour="));
-      Serial.print(gps.time.hour());
-      Serial.print(F(" Minute="));
-      Serial.print(gps.time.minute());
-      Serial.print(F(" Second="));
-      Serial.print(gps.time.second());
-      Serial.print(F(" Hundredths="));
-      Serial.println(gps.time.centisecond());
+  if (gps.time.isUpdated())
+  {
+    Serial.print(F("TIME       Fix Age="));
+    Serial.print(gps.time.age());
+    Serial.print(F("ms Raw="));
+    Serial.print(gps.time.value());
+    Serial.print(F(" Hour="));
+    Serial.print(gps.time.hour());
+    Serial.print(F(" Minute="));
+    Serial.print(gps.time.minute());
+    Serial.print(F(" Second="));
+    Serial.print(gps.time.second());
+    Serial.print(F(" Hundredths="));
+    Serial.println(gps.time.centisecond());
 
-      GPS_time = String(gps.time.hour()) + ":" + String(gps.time.minute()) + ":" + String(gps.time.second());
-      sprintf(buffer, "GPS time to be send: %s", GPS_time);
-      Serial.println(buffer);
-    }
-    if (gps.satellites.isUpdated())
-    {
-      Serial.print(F("SATELLITES Fix Age="));
-      Serial.print(gps.satellites.age());
-      Serial.print(F("ms Value="));
-      Serial.println(gps.satellites.value());
-
-      num_sat = String(gps.satellites.value());
-      sprintf(buffer, "GPS number of sattelites to be send: %s", num_sat);
-      Serial.println(buffer);
-    }
-    if (gps.location.isUpdated())
-    {
-      Serial.print(F("LOCATION   Fix Age="));
-      Serial.print(gps.location.age());
-      Serial.print(F("ms Raw Lat="));
-      Serial.print(gps.location.rawLat().negative ? "-" : "+");
-      Serial.print(gps.location.rawLat().deg);
-      Serial.print("[+");
-      Serial.print(gps.location.rawLat().billionths);
-      Serial.print(F(" billionths],  Raw Long="));
-      Serial.print(gps.location.rawLng().negative ? "-" : "+");
-      Serial.print(gps.location.rawLng().deg);
-      Serial.print("[+");
-      Serial.print(gps.location.rawLng().billionths);
-      Serial.print(F(" billionths],  Lat="));
-      Serial.print(gps.location.lat());
-      Serial.print(F(" Long="));
-      Serial.println(gps.location.lng());
-
-      long_lat = "Lat= " + String(gps.location.lat()) + " Long= " + String(gps.location.lng());
-      sprintf(buffer, "GPS time to be send: %s", long_lat);
-      Serial.println(buffer);
-    }
+    GPS_time = String(gps.time.hour()) + ":" + String(gps.time.minute()) + ":" + String(gps.time.second());
+    sprintf(buffer, "GPS time to be send: %s", GPS_time);
+    Serial.println(buffer);
   }
+  if (gps.satellites.isUpdated())
+  {
+    Serial.print(F("SATELLITES Fix Age="));
+    Serial.print(gps.satellites.age());
+    Serial.print(F("ms Value="));
+    Serial.println(gps.satellites.value());
+
+    num_sat = String(gps.satellites.value());
+    sprintf(buffer, "GPS number of sattelites to be send: %s", num_sat);
+    Serial.println(buffer);
+  }
+  if (gps.location.isUpdated())
+  {
+    Serial.print(F("LOCATION   Fix Age="));
+    Serial.print(gps.location.age());
+    Serial.print(F("ms Raw Lat="));
+    Serial.print(gps.location.rawLat().negative ? "-" : "+");
+    Serial.print(gps.location.rawLat().deg);
+    Serial.print("[+");
+    Serial.print(gps.location.rawLat().billionths);
+    Serial.print(F(" billionths],  Raw Long="));
+    Serial.print(gps.location.rawLng().negative ? "-" : "+");
+    Serial.print(gps.location.rawLng().deg);
+    Serial.print("[+");
+    Serial.print(gps.location.rawLng().billionths);
+    Serial.print(F(" billionths],  Lat="));
+    Serial.print(gps.location.lat());
+    Serial.print(F(" Long="));
+    Serial.println(gps.location.lng());
+
+    lat_long = String(gps.location.lat()) + ", " + String(gps.location.lng());
+    sprintf(buffer, "GPS time to be send: %s", lat_long);
+    Serial.println(buffer);
+  }
+}

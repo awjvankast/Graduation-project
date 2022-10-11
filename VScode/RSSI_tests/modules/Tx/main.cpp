@@ -23,7 +23,7 @@ SoftwareSerial ss(RX_GPS, TX_GPS);
 
 File myFile;
 
-int counter = 0;
+int packet_number = 0;
 extern unsigned long session_identifier;
 unsigned long last = 0UL;
 extern int SD_present;
@@ -41,7 +41,7 @@ void setup()
 
 }
 
-unsigned long prev_time = millis();
+unsigned long prev_time = millis()+SEND_PERIOD;
 
 void loop()
 {
@@ -62,12 +62,12 @@ void loop()
     unsigned int bite2 = retrieve_altimeter_value();
 
     extern String GPS_time;
-    extern String long_lat;
+    extern String lat_long;
     extern String num_sat;
 
     check_GPS_time_loc_sat();
     
-    ws.textAll("GPS: " + GPS_time + " " + long_lat + " " + num_sat);
+    ws.textAll("GPS: " + GPS_time + " " + lat_long + " " + num_sat);
   
     // Sending altdata to webpage
     Serial.print("Sending following to webpage: ");
@@ -75,14 +75,14 @@ void loop()
 
     // Send LoRa packet to receiver
     Serial.print("Sending packet: ");
-    Serial.println(counter);
+    Serial.println(packet_number);
 
     digitalWrite(SS_LORA, LOW);
     LoRa.beginPacket();
-    LoRa.print( String(NodeName + ", " + String(session_identifier) + ", " + String(counter)) );
+    LoRa.print( String(NodeName + ", " + String(session_identifier) + ", " + String(packet_number)) );
 
     LoRa.endPacket();
-    counter++;
+    packet_number++;
     digitalWrite(SS_LORA, HIGH);
     delayMicroseconds(100);
     prev_time = millis();

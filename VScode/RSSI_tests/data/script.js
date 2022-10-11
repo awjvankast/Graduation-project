@@ -28,8 +28,7 @@ function onMessage(event) {
   var today = new Date();
   // today.getFullYear()+'-'+(today.getMonth()+1)+'-'+today.getDate() + '\n' +
   var now =  today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
-  document.getElementById('now').innerHTML = now;
-
+  // document.getElementById('now').innerHTML = now;
   // Some logging on the console for debugging purposes
   console.log('Received a notification from ${event.origin}');
   console.log(event);
@@ -44,39 +43,50 @@ function onMessage(event) {
   }
   else if(event.data.charAt(0)=="A") { // Received messag from Tx, Alex
     LoRaData = event.data;
-    document.getElementById('LoRaData_Alex').innerHTML = LoRaData_Alex;
+    document.getElementById('LoRaData_Eva').innerHTML = LoRaData;
+    document.getElementById('now_Eva').innerHTML = now;
   }
   else if(event.data.charAt(0)=="B") { // Received messag from Tx, Brooke
     LoRaData = event.data;
-    document.getElementById('LoRaData_Brooke').innerHTML = LoRaData_Brooke;
+    document.getElementById('LoRaData_Brooke').innerHTML = LoRaData;
+    document.getElementById('now_Brooke').innerHTML = now;
   }
   else if(event.data.charAt(0)=="C") { // Received messag from Tx, Caldwell
     LoRaData = event.data;
-    document.getElementById('LoRaData_Caldwell').innerHTML = LoRaData_Caldwell;
+    document.getElementById('LoRaData_Caldwell').innerHTML = LoRaData;
+    document.getElementById('now_Caldwell').innerHTML = now;
   }
   else if(event.data.charAt(0)=="D") { // Received messag from Tx, DiGiulian
     LoRaData = event.data;
-    document.getElementById('LoRaData_DiGiulian').innerHTML = LoRaData_DiGiulian;
+    document.getElementById('LoRaData_DiGiulian').innerHTML = LoRaData;
+    document.getElementById('now_DiGiulian').innerHTML = now;
   }
   else if(event.data.charAt(0)=="E") { // Received messag from Tx, Eva
     LoRaData = event.data;
-    document.getElementById('LoRaData_Eva').innerHTML = LoRaData_Eva;
+    document.getElementById('LoRaData_Eva').innerHTML = LoRaData;
+    document.getElementById('now_Eva').innerHTML = now;
   }
   else if(event.data.charAt(0)=="F") { // Received messag from Tx, Famke
     LoRaData = event.data;
-    document.getElementById('LoRaData_Famke').innerHTML = LoRaData_Famke;
+    document.getElementById('LoRaData_Famke').innerHTML = LoRaData;
+    document.getElementById('now_Famke').innerHTML = now;
   }
   else if(event.data.charAt(0)=="G") { // Received messag from Tx, Gruber
     LoRaData = event.data;
-    document.getElementById('LoRaData_Gruber').innerHTML = LoRaData_Gruber;
+    document.getElementById('LoRaData_Gruber').innerHTML = LoRaData;
+    document.getElementById('now_Gruber').innerHTML = now;
   }
-  else if (event.data.charAt(1)=="P"){ // Display the GPS data
+  else if (event.data.charAt(0)=="Z"){ // Display the GPS data
     GPSData = event.data;
+    if (GPSData !== null) {
     document.getElementById('GPSData').innerHTML = GPSData;
+    }
   }
-  else if (event.data.charAt(1)=="l"){ // display the altimeter value
+  else if (event.data.charAt(0)=="Q"){ // display the altimeter value
     AltData = event.data;
-    document.getElementById('AltData').innerHTML = AltData;
+    if (GPSData !== null) {
+    document.getElementById('AltData').innerHTML = AltData.substr(2);
+    }
   }
   else if (event.data == "SDP"){ // The SD card is Present
     SD = "Present";

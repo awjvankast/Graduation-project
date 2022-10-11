@@ -35,7 +35,7 @@
 #define RESET_GPS 2
 
 #define GPSBAUD 9600
-#define SF_FACTOR 9
+#define SF_FACTOR 7
 
 #define BAT_SENSE 35
 
