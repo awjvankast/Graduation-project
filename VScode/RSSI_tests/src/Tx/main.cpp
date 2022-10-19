@@ -36,7 +36,7 @@ void setup()
   pin_SPI_initialization();
   ss.begin(GPSBAUD);
 
-  Serial.println("------------- RSSI test Transmitter node -------------");
+  D_println("------------- RSSI test Transmitter node -------------");
   all_modules_initialization();
 
 }
@@ -70,13 +70,14 @@ void loop()
     ws.textAll("Z: " + GPS_time + " " + lat_long + " " + num_sat);
   
     // Sending altdata to webpage
-    Serial.print("Sending following to webpage: ");
+    D_print("Sending following to webpage: ");
     ws.textAll("Q: " + String(bite2));
 
     // Send LoRa packet to receiver
-    Serial.print("Sending packet: ");
-    Serial.print(packet_number);
+    D_print("Sending packet: ");
+    D_print(packet_number);
 
+    digitalWrite(LED_WEBSERVER,HIGH);
     digitalWrite(SS_LORA, LOW);
 
     String packet_send_now = String(String(NodeName.charAt(0)) + "," + String(session_identifier) + "," + String(packet_number) );
@@ -85,12 +86,12 @@ void loop()
     // Set send packetin HTML in order to check how long it takes for packets to arrive
 
     LoRa.endPacket();
-    Serial.println( packet_send_now );
+    digitalWrite(LED_WEBSERVER,LOW);
+    D_println( packet_send_now );
     ws.textAll( packet_send_now );
 
     packet_number++;
     digitalWrite(SS_LORA, HIGH);
-    delayMicroseconds(100);
     prev_time = millis();
 
   }
