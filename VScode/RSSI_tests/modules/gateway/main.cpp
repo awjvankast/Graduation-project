@@ -37,7 +37,7 @@ void setup()
   pin_SPI_initialization();
   ss.begin(GPSBAUD);
 
-  Serial.println("------------- RSSI test gateway node -------------");
+  D_println("------------- RSSI test gateway node -------------");
   all_modules_initialization();
 }
 
@@ -87,18 +87,18 @@ void loop()
     // serial monitor and the SD card
 
     // received a packet
-    Serial.print("Received packet ");
+    D_print("Received packet ");
 
     // Read packet
     while (LoRa.available())
     {
       LoRaData = LoRa.readString();
-      Serial.print(LoRaData);
+      D_print(LoRaData);
 
       // print RSSI of packet
-      Serial.print(" with RSSI ");
+      D_print(" with RSSI ");
       LoRa_RSSI = LoRa.packetRssi();
-      Serial.println(LoRa_RSSI);
+      D_println(LoRa_RSSI);
     }
 
     // Check if the received message is from the Tx node, Alex in this case

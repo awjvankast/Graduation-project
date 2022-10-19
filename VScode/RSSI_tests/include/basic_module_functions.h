@@ -1,3 +1,16 @@
+// Set to 1 to enable debugging and printing, 0 for disabling 
+#define DEBUG 1
+
+// Used to enable or disable printing when debugging
+#if DEBUG
+#define D_print(...) Serial.print(__VA_ARGS__)
+#define D_println(...) Serial.println(__VA_ARGS__)
+#else
+#define D_print(...) 
+#define D_println(...) 
+#endif
+
+// Header guards
 #ifndef BASIC_MODULE_FUNCTIONS
 #define BASIC_MODULE_FUNCTIONS
 
@@ -42,7 +55,7 @@
 #define LED_LOW_BAT 33
 #define LED_WEBSERVER 32
 
-#define SEND_PERIOD 760
+#define SEND_PERIOD 50
 
 // SD card functions
 void initSDCard();

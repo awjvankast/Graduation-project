@@ -5,7 +5,7 @@
 // TODO
 // - Implement library to get the altimeter values from the SPI bus
 // - Low power implementation LED X
-// - set spreading factor better -> set to 9 now (range 7-12), increase in SF is higher range but lower data and higher power consumption
+// - set spreading factor better -> set to 7 now (range 7-12), increase in SF is higher range but lower data and higher power consumption
 // - Set the correct form for GPS to increase accuracy and decrease speed
 // - Adjust Javascript for correct printing to webpage X
 // - Send geolocation as well
@@ -41,7 +41,7 @@ void setup()
   pin_SPI_initialization();
   ss.begin(GPSBAUD);
 
-  Serial.println("------------- RSSI test intermediate node -------------");
+  D_println("------------- RSSI test intermediate node -------------");
   all_modules_initialization();
 }
 
@@ -70,18 +70,18 @@ void loop()
     // serial monitor and the SD card
 
     // received a packet
-    // Serial.print("Received packet ");
+    // D_print("Received packet ");
 
     // Read packet
     while (LoRa.available())
     {
       LoRaData = LoRa.readString();
-      Serial.print(LoRaData);
+      D_print(LoRaData);
 
       // print RSSI of packet
-      Serial.print("' with RSSI ");
+      D_print("' with RSSI ");
       LoRa_RSSI = LoRa.packetRssi();
-      Serial.println(LoRa_RSSI);
+      D_println(LoRa_RSSI);
       //ws.textAll(LoRaData);
     }
 
@@ -89,6 +89,8 @@ void loop()
     // if so, save it to SD
     if (LoRaData.charAt(0) == 'A')
     {
+      digitalWrite(LED_WEBSERVER,HIGH);
+      digitalWrite(LED_WEBSERVER,LOW);
       delay(125 * (last_IP_number-2) );
       String dataMessage = String(LoRaData) + "," + String(LoRa_RSSI);
       appendFile(SD, "/ReceivedMessages.txt", dataMessage.c_str());
@@ -103,8 +105,8 @@ void loop()
       //check_GPS_time_loc_sat();
 
       // Send LoRa packet to receiver
-      Serial.println("Sending packet: ");
-      Serial.println(packet_number);
+      D_println("Sending packet: ");
+      D_println(packet_number);
 
       LoRa.setSpreadingFactor(7);
       digitalWrite(SS_LORA, LOW);
@@ -123,8 +125,8 @@ void loop()
       digitalWrite(SS_LORA, HIGH);
       delayMicroseconds(100);
 
-      Serial.print("LoRa packet send: ");
-      Serial.println(LoRa_send_packet);
+      D_print("LoRa packet send: ");
+      D_println(LoRa_send_packet);
       // Send the LoRa data to the HTML page
       ws.textAll(LoRaData);
       // Send GPS data to HTML page
