@@ -41,7 +41,7 @@ void setup()
 
 }
 
-unsigned long prev_time = millis()+SEND_PERIOD;
+unsigned long prev_time = millis();
 
 void loop()
 {
@@ -52,7 +52,7 @@ void loop()
   digitalWrite(LED_WEBSERVER, ledState);
 
   // Checking for incoming messages from LoRa module
-  if(millis() - SEND_PERIOD > prev_time){
+  if(millis() - SEND_PERIOD > prev_time && millis() > SEND_PERIOD){
 
     // Dispatch incoming GPS characters
     while (ss.available() > 0)
@@ -67,21 +67,27 @@ void loop()
 
     check_GPS_time_loc_sat();
     
-    ws.textAll("GPS: " + GPS_time + " " + lat_long + " " + num_sat);
+    ws.textAll("Z: " + GPS_time + " " + lat_long + " " + num_sat);
   
     // Sending altdata to webpage
     Serial.print("Sending following to webpage: ");
-    ws.textAll("Alt: " + String(bite2));
+    ws.textAll("Q: " + String(bite2));
 
     // Send LoRa packet to receiver
     Serial.print("Sending packet: ");
-    Serial.println(packet_number);
+    Serial.print(packet_number);
 
     digitalWrite(SS_LORA, LOW);
+
+    String packet_send_now = String(String(NodeName.charAt(0)) + "," + String(session_identifier) + "," + String(packet_number) );
     LoRa.beginPacket();
-    LoRa.print( String(NodeName + ", " + String(session_identifier) + ", " + String(packet_number)) );
+    LoRa.print( packet_send_now );
+    // Set send packetin HTML in order to check how long it takes for packets to arrive
 
     LoRa.endPacket();
+    Serial.println( packet_send_now );
+    ws.textAll( packet_send_now );
+
     packet_number++;
     digitalWrite(SS_LORA, HIGH);
     delayMicroseconds(100);

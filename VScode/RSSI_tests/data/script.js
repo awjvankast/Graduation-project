@@ -27,7 +27,7 @@ function onMessage(event) {
   // Get the current time and display it on the HTML page every time any value changes
   var today = new Date();
   // today.getFullYear()+'-'+(today.getMonth()+1)+'-'+today.getDate() + '\n' +
-  var now =  today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
+  var now =  today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds() + ":" + today.getMilliseconds();
   // document.getElementById('now').innerHTML = now;
   // Some logging on the console for debugging purposes
   console.log('Received a notification from ${event.origin}');
@@ -43,8 +43,8 @@ function onMessage(event) {
   }
   else if(event.data.charAt(0)=="A") { // Received messag from Tx, Alex
     LoRaData = event.data;
-    document.getElementById('LoRaData_Eva').innerHTML = LoRaData;
-    document.getElementById('now_Eva').innerHTML = now;
+    document.getElementById('LoRaData_Alex').innerHTML = LoRaData;
+    document.getElementById('now_Alex').innerHTML = now;
   }
   else if(event.data.charAt(0)=="B") { // Received messag from Tx, Brooke
     LoRaData = event.data;

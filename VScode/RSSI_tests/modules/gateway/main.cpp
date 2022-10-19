@@ -105,11 +105,11 @@ void loop()
     // if so, save it to SD
     if (LoRaData.charAt(0) >= 'B' && LoRaData.charAt(0) <= 'G')
     {
+      // Implement timestamping here
       String dataMessage = String( String(LoRaData) + "\r\n");
       appendFile(SD, "/ReceivedMessages.txt", dataMessage.c_str());
 
       digitalWrite(SS_LORA, HIGH);
-      delayMicroseconds(100);
 
       // Send the LoRa data to the HTML page
       ws.textAll(LoRaData);

@@ -35,14 +35,14 @@
 #define RESET_GPS 2
 
 #define GPSBAUD 9600
-#define SF_FACTOR 7
+#define SF_FACTOR 8
 
 #define BAT_SENSE 35
 
 #define LED_LOW_BAT 33
 #define LED_WEBSERVER 32
 
-#define SEND_PERIOD 500
+#define SEND_PERIOD 760
 
 // SD card functions
 void initSDCard();
