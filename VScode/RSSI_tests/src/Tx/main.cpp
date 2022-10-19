@@ -77,6 +77,7 @@ void loop()
     D_print("Sending packet: ");
     D_print(packet_number);
 
+    digitalWrite(LED_WEBSERVER,HIGH);
     digitalWrite(SS_LORA, LOW);
 
     String packet_send_now = String(String(NodeName.charAt(0)) + "," + String(session_identifier) + "," + String(packet_number) );
@@ -85,7 +86,7 @@ void loop()
     // Set send packetin HTML in order to check how long it takes for packets to arrive
 
     LoRa.endPacket();
-
+    digitalWrite(LED_WEBSERVER,LOW);
     D_println( packet_send_now );
     ws.textAll( packet_send_now );
 

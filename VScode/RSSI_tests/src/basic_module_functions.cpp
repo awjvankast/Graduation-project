@@ -47,8 +47,8 @@ void pin_SPI_initialization()
   // D_print("Analog Read: "); D_println(analogRead(BAT_SENSE));
   if (battery_voltage < 3.42)
   {
-    D_println("LOW BATTERY WARNING!");
-    D_print("Battery voltage: ");
+    D_println(F("LOW BATTERY WARNING!"));
+    D_print(F("Battery voltage: "));
     D_println(battery_voltage);
     digitalWrite(LED_LOW_BAT, HIGH);
   }
@@ -63,7 +63,7 @@ void pin_SPI_initialization()
 
 void all_modules_initialization()
 {
-  D_println("Starting all modules initialization");
+  D_println(F("Starting all modules initialization"));
   // Set your Static IP address
   IPAddress local_IP(192, 168, 43, last_IP_number); // A = 1, B = 2, ...
   // Set your Gateway IP address
@@ -73,11 +73,11 @@ void all_modules_initialization()
   IPAddress secondaryDNS(8, 8, 4, 4); // optional
 
   session_identifier = random(11111, 99999);
-  D_print("Session identifier: ");
+  D_print(F("Session identifier: "));
   D_println(session_identifier);
   D_println("");
 
-  D_println("--- LORA INITIALIZAITON ---");
+  D_println(F("--- LORA INITIALIZAITON ---"));
   digitalWrite(SS_LORA, LOW);
   LoRa.setPins(SS_LORA, LORA_RESET, LORA_DATA);
   while (!LoRa.begin(433E6))
@@ -87,21 +87,21 @@ void all_modules_initialization()
   }
   LoRa.setSyncWord(SYNC_LORA);
   D_println("");
-  D_println("LoRa initialized!");
-  LoRa.setSpreadingFactor(SF_FACTOR);
+  D_println(F("LoRa initialized!"));
+  LoRa.setSpreadingFactor(SF_FACTOR_TX_INTER);
   D_println();
   digitalWrite(SS_LORA, HIGH);
 
-  D_println("--- SD INITIALIZATION ---");
+  D_println(F("--- SD INITIALIZATION ---"));
   initSDCard();
 
-  String dataMessage = "Session identifier, " + String(session_identifier) + "\r\n";
+  String dataMessage = "Session identifier," + String(session_identifier) + "\r\n";
 
   File file = SD.open("/ReceivedMessages.txt");
   if (!file)
   {
-    D_println("File doesn't exist");
-    D_println("Creating file...");
+    D_println(F("File doesn't exist"));
+    D_println(F("Creating file..."));
     writeFile(SD, "/ReceivedMessages.txt", dataMessage.c_str());
   }
   else
@@ -111,23 +111,23 @@ void all_modules_initialization()
   file.close();
   D_println();
 
-  D_println("--- SPIFFS INITIALIZATION ---");
+  D_println(F("--- SPIFFS INITIALIZATION ---"));
   while (!SPIFFS.begin(true))
   {
     D_print(".");
     delay(500);
   }
   D_println("");
-  D_println("SPIFFS initialized!");
+  D_println(F("SPIFFS initialized!"));
   D_println();
 
   // Connect to Wi-Fi
-  D_println("--- WIFI INITIALIZATION ---");
+  D_println(F("--- WIFI INITIALIZATION ---"));
 
   // Initializing static IP adress
   if (!WiFi.config(local_IP, gateway, subnet, primaryDNS, secondaryDNS))
   {
-    D_println("STA Failed to configure");
+    D_println(F("STA Failed to configure"));
   }
 
   WiFi.begin(ssid, password);
@@ -138,10 +138,10 @@ void all_modules_initialization()
   }
   initWebSocket();
   D_println("");
-  D_println("Wi-Fi initialized!");
+  D_println(F("Wi-Fi initialized!"));
 
   // Print ESP32 Local IP Address
-  D_print("IP adress: ");
+  D_print(F("IP adress: "));
   D_println(WiFi.localIP());
   D_println();
 
@@ -190,7 +190,7 @@ void initSDCard()
 {
   if (!SD.begin(SS_SD))
   {
-    D_println("Card Mount Failed");
+    D_println(F("Card Mount Failed"));
     return;
   }
   SD_present = 1;
@@ -198,25 +198,25 @@ void initSDCard()
 
   if (cardType == CARD_NONE)
   {
-    D_println("No SD card attached");
+    D_println(F("No SD card attached"));
     return;
   }
-  D_print("SD Card Type: ");
+  D_print(F("SD Card Type: "));
   if (cardType == CARD_MMC)
   {
-    D_println("MMC");
+    D_println(F("MMC"));
   }
   else if (cardType == CARD_SD)
   {
-    D_println("SDSC");
+    D_println(F("SDSC"));
   }
   else if (cardType == CARD_SDHC)
   {
-    D_println("SDHC");
+    D_println(F("SDHC"));
   }
   else
   {
-    D_println("UNKNOWN");
+    D_println(F("UNKNOWN"));
   }
   uint64_t cardSize = SD.cardSize() / (1024 * 1024);
   Serial.printf("SD Card Size: %lluMB\n", cardSize);
@@ -230,16 +230,16 @@ void writeFile(fs::FS &fs, const char *path, const char *message)
   File file = fs.open(path, FILE_WRITE);
   if (!file)
   {
-    D_println("Failed to open file for writing");
+    D_println(F("Failed to open file for writing"));
     return;
   }
   if (file.print(message))
   {
-    D_println("File written");
+    D_println(F("File written"));
   }
   else
   {
-    D_println("Write failed");
+    D_println(F("Write failed"));
   }
   file.close();
 }
@@ -252,16 +252,16 @@ void appendFile(fs::FS &fs, const char *path, const char *message)
   File file = fs.open(path, FILE_APPEND);
   if (!file)
   {
-    D_println("Failed to open file for appending");
+    D_println(F("Failed to open file for appending"));
     return;
   }
   if (file.print(message))
   {
-    D_println("Message appended");
+    D_println(F("Message appended"));
   }
   else
   {
-    D_println("Append failed");
+    D_println(F("Append failed"));
   }
   file.close();
 }
@@ -341,9 +341,9 @@ unsigned int retrieve_altimeter_value()
   SPI.transfer(0xA4); // sending 8 bit command
   delayMicroseconds(20);
   unsigned int bite2 = SPI.transfer16(0x0000); // sending 0
-  D_print("Byte from reading PROM altimeter: ");
+  D_print(F("Byte from reading PROM altimeter: "));
   printBin16(bite2);
-  D_print(" In dec form:");
+  D_print(F(" In dec form:"));
   D_print(bite2);
 
   digitalWrite(SS_ALT, HIGH);
