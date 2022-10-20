@@ -40,10 +40,10 @@ void setup()
   D_println("------------- RSSI test gateway node -------------");
   all_modules_initialization();
   LoRa.setSpreadingFactor(SF_FACTOR_INTER_GATEWAY);
+
 }
 
 unsigned long prev_time = millis()+ MEASURE_PERIOD;
-
 
 void loop()
 {
@@ -57,8 +57,10 @@ void loop()
   while (ss.available() > 0)
     gps.encode(ss.read());
 
-  if (millis() - MEASURE_PERIOD > prev_time)
+  if (millis() - MEASURE_PERIOD > prev_time && millis() > MEASURE_PERIOD)
   {
+    D_println(LocalTimeToString());
+
     extern String GPS_time;
     extern String lat_long;
     extern String num_sat;
@@ -116,3 +118,5 @@ void loop()
     }
   }
 }
+
+
