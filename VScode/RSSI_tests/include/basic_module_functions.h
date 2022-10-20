@@ -1,5 +1,5 @@
 // Set to 1 to enable debugging and printing, 0 for disabling 
-#define DEBUG 0
+#define DEBUG 1
 
 // Used to enable or disable printing when debugging
 #if DEBUG
@@ -27,6 +27,8 @@
 #include "WiFi.h"
 #include "ESPAsyncWebServer.h"
 #include "SPIFFS.h"
+
+#include "time.h"
 
 #define SCK 18
 #define MISO 23
@@ -87,5 +89,8 @@ unsigned int retrieve_altimeter_value();
 
 // GPS functions
 void check_GPS_time_loc_sat();
+
+// Function for getting the time from NTP server
+String LocalTimeToString();
 
 #endif
