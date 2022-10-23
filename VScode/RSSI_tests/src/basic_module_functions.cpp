@@ -13,6 +13,7 @@ extern AsyncWebSocket ws;
 extern TinyGPSPlus gps;
 
 extern int ledState;
+int WiFi_connected = 0;
 
 char buffer[50];
 
@@ -136,16 +137,28 @@ void all_modules_initialization()
   }
 
   WiFi.begin(ssid, password);
-  while (WiFi.status() != WL_CONNECTED)
+  int wifi_con_try = 0;
+  // Try to connect to wifi for a maximum of 3 seconds
+  while (WiFi.status() != WL_CONNECTED && wifi_con_try < 30)
   {
     delay(100);
     D_print(".");
+    wifi_con_try++;
   }
-  initWebSocket();
-  D_println("");
-  D_println(F("Wi-Fi initialized!"));
+  if (wifi_con_try == 30) {
+      D_println(F("Failed to initialize WiFi!"));
+      D_println("");
+  }
+  else{
+      D_println(F("WiFi Initialized!"));
+      D_println("");
+      WiFi_connected = 1;
+  }
 
   // Configuring and getting time from NTP server
+  if (WiFi_connected) {
+  initWebSocket();
+
   D_print("Time from NTP server: ");
   configTime(gmtOffset_sec, daylightOffset_sec, ntpServer);
   String loc_time = LocalTimeToString() + "\r\n";
@@ -153,12 +166,13 @@ void all_modules_initialization()
  
   // Save the time to the SD card when starting up
   appendFile(SD, "/ReceivedMessages.txt", loc_time.c_str());
-
+  }
   // Print ESP32 Local IP Address
   D_print(F("IP adress: "));
   D_println(WiFi.localIP());
   D_println();
 
+  if(WiFi_connected){
   // Route for root / web page
   server.on("/", HTTP_GET, [](AsyncWebServerRequest *request)
             { request->send(SPIFFS, "/index.html", String(), false, processor); });
@@ -175,6 +189,7 @@ void all_modules_initialization()
   AsyncElegantOTA.begin(&server);
   // Start server
   server.begin();
+  }
 
   if (SD_present)
   {
