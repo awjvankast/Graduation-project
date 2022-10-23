@@ -59,7 +59,7 @@ void loop()
 
   if (millis() - MEASURE_PERIOD > prev_time && millis() > MEASURE_PERIOD)
   {
-    D_println(LocalTimeToString());
+    // D_println(LocalTimeToString());
 
     extern String GPS_time;
     extern String lat_long;

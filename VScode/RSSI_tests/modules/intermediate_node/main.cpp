@@ -14,6 +14,7 @@
 // - Data overflow from packets FIXED
 // - Data not reaching gateway
 // - need more sd cards for debugging
+// - Use SNR?
 
 #include "basic_module_functions.h"
 

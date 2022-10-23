@@ -95,6 +95,7 @@ void all_modules_initialization()
   D_println("");
   D_println(F("LoRa initialized!"));
   LoRa.setSpreadingFactor(SF_FACTOR_TX_INTER);
+  LoRa.enableCrc();
   D_println();
   digitalWrite(SS_LORA, HIGH);
 
@@ -146,6 +147,7 @@ void all_modules_initialization()
     wifi_con_try++;
   }
   if (wifi_con_try == 30) {
+      D_println("");
       D_println(F("Failed to initialize WiFi!"));
       D_println("");
   }
