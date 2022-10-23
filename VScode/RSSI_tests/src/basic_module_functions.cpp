@@ -41,10 +41,11 @@ void pin_SPI_initialization()
   // Fully charged the 3 AAA batteries provide 4.5 V
   pinMode(BAT_SENSE, INPUT);
   pinMode(LED_LOW_BAT, OUTPUT);
+  
   // The multiply two comes from the voltage divider circuit for measuring voltages above 3.3V
   float battery_voltage = analogRead(BAT_SENSE) / float(4095) * float(3.3) * float(2);
-  // D_print("Battery voltage: "); D_println(battery_voltage);
-  // D_print("Analog Read: "); D_println(analogRead(BAT_SENSE));
+  D_print("Battery voltage: "); D_println(battery_voltage);
+  D_print("Analog Read: "); D_println(analogRead(BAT_SENSE));
   if (battery_voltage < 3.42)
   {
     D_println(F("LOW BATTERY WARNING!"));
@@ -404,7 +405,8 @@ void check_GPS_time_loc_sat()
     D_print(F(" Long="));
     D_println(gps.location.lng());
 
-    lat_long = String(gps.location.lat()) + ", " + String(gps.location.lng());
+    lat_long = String(gps.location.rawLat().deg) + "." + String(gps.location.rawLat().billionths) + "," 
+    + String(gps.location.rawLng().deg) + "." + String(gps.location.rawLng().billionths );
     sprintf(buffer, "GPS time to be send: %s", lat_long);
     D_println(buffer);
   }

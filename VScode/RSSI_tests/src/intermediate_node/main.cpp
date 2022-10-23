@@ -11,8 +11,8 @@
 #include "basic_module_functions.h"
 
 // CHANGE THIS for every different node
-String NodeName = "Gruber";
-int last_IP_number = 7;
+String NodeName = "Caldwell";
+int last_IP_number = 3;
 
 bool ledState = 0;
 AsyncWebServer server(80);

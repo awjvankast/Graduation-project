@@ -4,8 +4,7 @@
 
 // TODO
 // - Implement library to get the altimeter values from the SPI bus
-// - Low power implementation LED X
-// - set spreading factor better X  
+
 
 #include "basic_module_functions.h"
 
