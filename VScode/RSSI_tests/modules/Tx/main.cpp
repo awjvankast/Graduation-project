@@ -38,6 +38,8 @@ void setup()
   D_println("------------- RSSI test Transmitter node -------------");
   all_modules_initialization();
 
+
+
 }
 
 unsigned long prev_time = millis();
@@ -49,6 +51,9 @@ void loop()
 
   // Led toggling for test purposes
   digitalWrite(LED_WEBSERVER, ledState);
+
+  printLocalTime();
+
 
   // Checking for incoming messages from LoRa module
   if(millis() - SEND_PERIOD > prev_time && millis() > SEND_PERIOD){
@@ -95,6 +100,9 @@ void loop()
 
   }
 }
+
+
+
 
 
 

@@ -20,6 +20,10 @@ String GPS_time;
 String lat_long;
 String num_sat;
 
+const char* ntpServer = "pool.ntp.org";
+const long  gmtOffset_sec = 3600;
+const int   daylightOffset_sec = 3600;
+
 void pin_SPI_initialization()
 {
   // Leave all the GPS pins which are not used floating, recommended by datasheet
@@ -68,8 +72,8 @@ void all_modules_initialization()
   // Set your Static IP address
   IPAddress local_IP(192, 168, 43, last_IP_number); // A = 1, B = 2, ...
   // Set your Gateway IP address
-  IPAddress gateway(192, 168, 43, last_IP_number);
-  IPAddress subnet(255, 255, 0, 0);
+  IPAddress gateway(192, 168, 43, 1); // Should be set to this in order for ntp to work
+  IPAddress subnet(255, 255, 255, 0);
   IPAddress primaryDNS(8, 8, 8, 8);   // optional
   IPAddress secondaryDNS(8, 8, 4, 4); // optional
 
@@ -96,7 +100,7 @@ void all_modules_initialization()
   D_println(F("--- SD INITIALIZATION ---"));
   initSDCard();
 
-  String dataMessage = "Session identifier," + String(session_identifier) + "\r\n";
+  String dataMessage = "Session identifier," + String(session_identifier) + ",";
 
   File file = SD.open("/ReceivedMessages.txt");
   if (!file)
@@ -140,6 +144,15 @@ void all_modules_initialization()
   initWebSocket();
   D_println("");
   D_println(F("Wi-Fi initialized!"));
+
+  // Configuring and getting time from NTP server
+  D_print("Time from NTP server: ");
+  configTime(gmtOffset_sec, daylightOffset_sec, ntpServer);
+  String loc_time = LocalTimeToString() + "\r\n";
+  D_print(loc_time);
+ 
+  // Save the time to the SD card when starting up
+  appendFile(SD, "/ReceivedMessages.txt", loc_time.c_str());
 
   // Print ESP32 Local IP Address
   D_print(F("IP adress: "));
@@ -410,4 +423,16 @@ void check_GPS_time_loc_sat()
     sprintf(buffer, "GPS time to be send: %s", lat_long);
     D_println(buffer);
   }
+}
+
+String LocalTimeToString()
+{
+  struct tm timeinfo;
+  String time_loc;
+  if(!getLocalTime(&timeinfo)){
+    D_println("Failed to obtain time");
+    return time_loc;
+  }
+  time_loc = String(timeinfo.tm_mday) + ":" + String(timeinfo.tm_mon + 1) + ":" + String(timeinfo.tm_year + 1900) + ", " + String(timeinfo.tm_hour) + ":" + String(timeinfo.tm_min) + ":" + String(timeinfo.tm_sec);
+  return time_loc;
 }
