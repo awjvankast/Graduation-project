@@ -50,8 +50,8 @@
 #define RESET_GPS 2
 
 #define GPSBAUD 9600
-#define SF_FACTOR_INTER_GATEWAY 7
-#define SF_FACTOR_TX_INTER 8
+#define SF_FACTOR_INTER_GATEWAY 6
+#define SF_FACTOR_TX_INTER 7
 
 #define BAT_SENSE 35
 
@@ -59,7 +59,8 @@
 #define LED_WEBSERVER 32
 
 #define SEND_PERIOD 200
-#define MEASURE_PERIOD 10000
+#define MEASURE_PERIOD 20000
+#define MAX_QUEUE 60
 
 // SD card functions
 void initSDCard();
