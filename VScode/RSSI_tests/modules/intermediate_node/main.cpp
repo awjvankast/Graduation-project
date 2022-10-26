@@ -9,7 +9,7 @@
 // - Set the correct form for GPS to increase accuracy and decrease speed
 
 // Potential causes failed experiment on hockey field
-// - Not enough delays because of reflections
+// - Not enough delays because of reflections?
 // - Not connecting to wifi at startup FIXED
 // - Data overflow from packets FIXED
 // - Data not reaching gateway
@@ -19,8 +19,8 @@
 #include "basic_module_functions.h"
 
 // CHANGE THIS for every different node
-String NodeName = "Caldwell";
-int last_IP_number = 3;
+String NodeName = "Brooke";
+int last_IP_number = 2;
 
 bool ledState = 0;
 AsyncWebServer server(80);
@@ -131,8 +131,8 @@ void loop()
       dataBody = dataBody_temp;
       
       // With 20 packets spacing, send a new packet 
-      // Packets have 3 packets spacing this way (600ms with 200ms Tx spacing)
-      if( Tx_packet_number % ( last_IP_number + 18 + (last_IP_number-2)*2 ) == 0 && Tx_packet_number >= 20){
+      // Packets have 3~7 packets spacing this way 
+      if( ( Tx_packet_number % ( 30 + (last_IP_number-2)*5 ) == 0 || Tx_packet_number % ( 29 + (last_IP_number-2)*5 ) == 0 || Tx_packet_number % ( 31 + (last_IP_number-2)*5 ) == 0 )  && Tx_packet_number >= 29 && packets_in_send_queue >= 10){
         packet_number++;
         packets_in_send_queue = 0;
         D_println(F("Sending accumulated data"));

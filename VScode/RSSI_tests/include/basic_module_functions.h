@@ -1,5 +1,5 @@
 // Set to 1 to enable debugging and printing, 0 for disabling 
-#define DEBUG 1
+#define DEBUG 0
 
 // Used to enable or disable printing when debugging
 #if DEBUG
@@ -58,9 +58,9 @@
 #define LED_LOW_BAT 33
 #define LED_WEBSERVER 32
 
-#define SEND_PERIOD 200
+#define SEND_PERIOD 150
 #define MEASURE_PERIOD 20000
-#define MAX_QUEUE 60
+#define MAX_QUEUE 75
 
 // SD card functions
 void initSDCard();
