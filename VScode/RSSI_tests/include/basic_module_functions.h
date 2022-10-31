@@ -51,16 +51,20 @@
 
 #define GPSBAUD 9600
 #define SF_FACTOR_INTER_GATEWAY 7
-#define SF_FACTOR_TX_INTER 8
+#define SF_FACTOR_TX_INTER 7
 
 #define BAT_SENSE 35
 
 #define LED_LOW_BAT 33
 #define LED_WEBSERVER 32    
 
-#define SEND_PERIOD 150
-#define MEASURE_PERIOD 2000
-#define MAX_QUEUE 75
+#define SEND_PERIOD 125
+#define TX_WAIT_TIME 250
+#define MEASURE_PERIOD 20000
+#define MAX_QUEUE 200
+#define MAX_PACKET_NUMBER 360000
+#define PACKETS_PER_PERIOD 8
+#define NUMBER_OF_TRX_MODULES 6
 
 // SD card functions
 void initSDCard();

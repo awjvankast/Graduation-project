@@ -17,6 +17,9 @@
 // - Use SNR?
 // - Likely cause: collision of packets with different SF's. SF's apparently collide when the power difference is too big.
 
+// Fix small bug with turning on/off transmitter and package delay
+
+
 #include "basic_module_functions.h"
 
 // CHANGE THIS for every different node
@@ -33,7 +36,6 @@ SoftwareSerial ss(RX_GPS, TX_GPS);
 
 File myFile;
 
-int packet_number = 0;
 extern unsigned long session_identifier;
 unsigned long last = 0UL;
 extern int SD_present;
@@ -50,12 +52,16 @@ void setup()
 
   D_println("------------- RSSI test intermediate node -------------");
   all_modules_initialization();
-  bite2 = retrieve_altimeter_value();
 }
 
 unsigned long prev_time = millis();
+unsigned long time_before_next_send = 429496729;
+//Check how many packets untill nex send period of this node and adjust countdown
+int packets_remaining_before_send;
+unsigned long packet_send_timestamp;
 int add_dataHeader = 1;
 int packets_in_send_queue = 0;
+int packet_number = 1;
 String dataHeader;
 String dataBody;
 String dataTotal;
@@ -80,11 +86,7 @@ void loop()
   // Do something at time intervals
   if (millis() - MEASURE_PERIOD > prev_time && millis() > MEASURE_PERIOD ){
       check_GPS_time_loc_sat();
-      prev_time = millis();
-        LoRa.beginPacket();
-        LoRa.print( "B" );
-        LoRa.endPacket();
-        
+      prev_time = millis();        
   }
 
   // Checking for incoming messages from LoRa module
@@ -100,7 +102,6 @@ void loop()
     {
       LoRaData = LoRa.readString();
       D_print(LoRaData);
-
       // print RSSI of packet
       D_print(" with RSSI ");
       LoRa_RSSI = LoRa.packetRssi();
@@ -112,8 +113,8 @@ void loop()
     // if so, save it to SD
     if (LoRaData.charAt(0) == 'A')
     { 
-      packets_in_send_queue++;
       digitalWrite(LED_WEBSERVER, HIGH);
+      packets_in_send_queue++;
 
       String dataMessage = String(LoRaData) + "," + String(LoRa_RSSI) + "\r\n";
 
@@ -133,10 +134,48 @@ void loop()
       // Append data to the end of the String
       String dataBody_temp = dataBody + Tx_data ;
       dataBody = dataBody_temp;
-      
+
+
+      // Check if packet number is a reasonable number
+      if(Tx_packet_number >=0 && Tx_packet_number <= MAX_PACKET_NUMBER){
+            // This evaluates  we currently how far untill the next send period
+            // e.g. with PACKETS_PER_PERIOD = 8 and NUMBER_OF_TRX_MODULES = 6:
+            // module B want to send after received packet [8, 56, 104, 152, ...]
+            // The evaluation performs Tx_packet_number - [8, 56, ...] untill the result is negative
+            // Then we know that, for instance, Tx_packet_number = 54 the next send period will take place in 56-54 = 2 packets
+            // Tx should send a packet every SEND_PERIOD seconds so the delay can be set at 200ms
+            if(Tx_packet_number - ((packet_number-1) * PACKETS_PER_PERIOD * NUMBER_OF_TRX_MODULES + PACKETS_PER_PERIOD*(last_IP_number-1) ) <= 0 ){
+              packets_remaining_before_send = (packet_number-1)*PACKETS_PER_PERIOD*NUMBER_OF_TRX_MODULES + PACKETS_PER_PERIOD*(last_IP_number-1) - Tx_packet_number;
+              time_before_next_send = packets_remaining_before_send * SEND_PERIOD;
+              packet_send_timestamp = millis();
+            }
+            else{
+              packet_number++;
+            }
+      D_print("Packets remaining before send: "); D_println(packets_remaining_before_send);
+       D_print("Time before next send: "); D_println(time_before_next_send);
+        D_print("packet send timestamp: "); D_println(packet_send_timestamp);
+    }
+    }
+          // If buffer is too full, delete all data
+      if( packets_in_send_queue >= MAX_QUEUE ) {
+        D_println(F("Deleting data queue because of overflow risk"));
+        packets_in_send_queue = 0;
+        dataBody = "";
+        dataHeader = "";
+        add_dataHeader = 1;
+      }
+      // Send the LoRa data to the HTML page
+      ws.textAll(LoRaData);
+
+      digitalWrite(LED_WEBSERVER, LOW);
+  }
+      // now start countdown 
+
       // With 20 packets spacing, send a new packet 
       // Packets have 3~7 packets spacing this way 
-      if( ( Tx_packet_number % ( 30 + (last_IP_number-2)*5 ) == 0 || Tx_packet_number % ( 29 + (last_IP_number-2)*5 ) == 0 || Tx_packet_number % ( 31 + (last_IP_number-2)*5 ) == 0 )  && Tx_packet_number >= 29 && packets_in_send_queue >= 10){
+      if( time_before_next_send == 0 || millis() >= time_before_next_send + packet_send_timestamp ){
+        time_before_next_send = 429496729;
         packet_number++;
         packets_in_send_queue = 0;
         D_println(F("Sending accumulated data"));
@@ -157,19 +196,6 @@ void loop()
 
         D_println("LoRa packet send: ");
         D_print(dataTotal);
-      }
-      // If buffer is too full, delete all data
-      if( packets_in_send_queue >= MAX_QUEUE ) {
-        D_println(F("Deleting data queue because of overflow risk"));
-        packets_in_send_queue = 0;
-        dataBody = "";
-        dataHeader = "";
-        add_dataHeader = 1;
-      }
-      // Send the LoRa data to the HTML page
-      ws.textAll(LoRaData);
-
-      digitalWrite(LED_WEBSERVER, LOW);
+      
     }
-  }
 }

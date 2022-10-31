@@ -22,7 +22,7 @@ String lat_long;
 String num_sat;
 
 const char* ntpServer = "pool.ntp.org";
-const long  gmtOffset_sec = 3600;
+const long  gmtOffset_sec = 0;
 const int   daylightOffset_sec = 3600;
 
 void pin_SPI_initialization()
