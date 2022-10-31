@@ -1,5 +1,5 @@
 // Set to 1 to enable debugging and printing, 0 for disabling 
-#define DEBUG 0
+#define DEBUG 1
 
 // Used to enable or disable printing when debugging
 #if DEBUG
@@ -56,10 +56,10 @@
 #define BAT_SENSE 35
 
 #define LED_LOW_BAT 33
-#define LED_WEBSERVER 32
+#define LED_WEBSERVER 32    
 
 #define SEND_PERIOD 150
-#define MEASURE_PERIOD 20000
+#define MEASURE_PERIOD 2000
 #define MAX_QUEUE 75
 
 // SD card functions

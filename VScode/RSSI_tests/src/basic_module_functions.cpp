@@ -169,6 +169,10 @@ void all_modules_initialization()
   // Save the time to the SD card when starting up
   appendFile(SD, "/ReceivedMessages.txt", loc_time.c_str());
   }
+  else{
+    String new_line_add = "\r\n";
+    appendFile(SD, "/ReceivedMessages.txt", new_line_add.c_str());
+  }
   // Print ESP32 Local IP Address
   D_print(F("IP adress: "));
   D_println(WiFi.localIP());
