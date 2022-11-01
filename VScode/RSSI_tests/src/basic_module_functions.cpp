@@ -95,7 +95,7 @@ void all_modules_initialization()
   D_println("");
   D_println(F("LoRa initialized!"));
   LoRa.setSpreadingFactor(SF_FACTOR_TX_INTER);
-  LoRa.enableCrc();
+  //LoRa.enableCrc();
   D_println();
   digitalWrite(SS_LORA, HIGH);
 

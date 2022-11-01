@@ -107,7 +107,8 @@ void loop()
     if (LoRaData.charAt(0) >= 'B' && LoRaData.charAt(0) <= 'G')
     {
       digitalWrite(LED_WEBSERVER,HIGH);
-      // Implement timestamping here
+      
+      D_print("Received message from intermediate node");
       String dataMessage = String( LoRaData + "\r\n");
       appendFile(SD, "/ReceivedMessages.txt", dataMessage.c_str());
 

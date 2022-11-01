@@ -71,12 +71,12 @@ void loop()
 
     // Wait untill the wait time has passed
     while(millis() < wait_tracker + TX_WAIT_TIME) 1;
-    digitalWrite(LED_WEBSERVER,HIGH);
   }
 
   // Checking for incoming messages from LoRa module
   if(millis() - SEND_PERIOD > prev_time && millis() > SEND_PERIOD){
     // Send LoRa packet to receiver
+    prev_time = millis();
     D_print("Sending packet: ");
 
     // Composing the packet, sending it and using the LED as indicator
@@ -93,7 +93,7 @@ void loop()
 
     // Increase packet number and reset the timer
     packet_number++;
-    prev_time = millis();
+
   }
 }
 
