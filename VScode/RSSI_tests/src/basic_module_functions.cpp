@@ -48,7 +48,7 @@ void pin_SPI_initialization()
   pinMode(LED_LOW_BAT, OUTPUT);
   
   // The multiply two comes from the voltage divider circuit for measuring voltages above 3.3V
-  float battery_voltage = analogRead(BAT_SENSE) / float(4095) * float(3.3) * float(2);
+  float battery_voltage = float(analogRead(BAT_SENSE)) / float(4095) * float(3.3) * float(2.0);
   D_print("Battery voltage: "); D_println(battery_voltage);
   D_print("Analog Read: "); D_println(analogRead(BAT_SENSE));
   if (battery_voltage < 3.42)

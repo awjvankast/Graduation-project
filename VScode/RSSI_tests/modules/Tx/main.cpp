@@ -49,7 +49,7 @@ void loop()
   // Led toggling for test purposes
   digitalWrite(LED_WEBSERVER, ledState);
 
-  if (packet_number % (PACKETS_PER_PERIOD + 1) == 0) {
+  if ( (packet_number - 1) % PACKETS_PER_PERIOD  == 0) {
     unsigned long wait_tracker = millis();
     digitalWrite(LED_WEBSERVER,LOW);
 

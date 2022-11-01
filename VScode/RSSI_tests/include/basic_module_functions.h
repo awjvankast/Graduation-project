@@ -59,7 +59,12 @@
 #define LED_WEBSERVER 32    
 
 #define SEND_PERIOD 125
-#define TX_WAIT_TIME 1000
+// Tx wait time cannot be more than PACKETS_PER_PERIOD * SEND_PERIOD
+// Otherwise unintended behaviour will happen
+// If it's too short the packets will not arrive at the gateway
+// According to tests it can need to have around 711ms
+// Without print statements less
+#define TX_WAIT_TIME 800
 #define MEASURE_PERIOD 100000
 #define MAX_QUEUE 200
 #define MAX_PACKET_NUMBER 360000
