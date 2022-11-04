@@ -5,7 +5,6 @@
 // TODO
 // - Implement library to get the altimeter values from the SPI bus
 
-
 #include "basic_module_functions.h"
 
 // CHANGE THIS for every different node
@@ -22,7 +21,7 @@ SoftwareSerial ss(RX_GPS, TX_GPS);
 
 File myFile;
 
-int packet_number = 0;
+int packet_number = 1;
 extern unsigned long session_identifier;
 unsigned long last = 0UL;
 extern int SD_present;
@@ -50,47 +49,50 @@ void loop()
   // Led toggling for test purposes
   digitalWrite(LED_WEBSERVER, ledState);
 
-  // Checking for incoming messages from LoRa module
-  if(millis() - SEND_PERIOD > prev_time && millis() > SEND_PERIOD){
+  if ( (packet_number - 1) % PACKETS_PER_PERIOD  == 0) {
+    unsigned long wait_tracker = millis();
+    digitalWrite(LED_WEBSERVER,LOW);
 
+    // Do some measurements while waiting
     // Dispatch incoming GPS characters
-    while (ss.available() > 0)
-      gps.encode(ss.read());
+    while (ss.available() > 0) gps.encode(ss.read());
 
-    // Check a value of the altimeter
+    // Check a value of the altimeter and get the GPS data if available
     unsigned int bite2 = retrieve_altimeter_value();
-
     extern String GPS_time;
     extern String lat_long;
     extern String num_sat;
-
     check_GPS_time_loc_sat();
     
+    // Sending alt data and GPS data to webpage
     ws.textAll("Z: " + GPS_time + " " + lat_long + " " + num_sat);
-  
-    // Sending altdata to webpage
-    D_print("Sending following to webpage: ");
+    D_print("Sending following altdata to webpage: ");
     ws.textAll("Q: " + String(bite2));
 
+    // Wait untill the wait time has passed
+    while(millis() < wait_tracker + TX_WAIT_TIME) 1;
+  }
+
+  // Checking for incoming messages from LoRa module
+  if(millis() - SEND_PERIOD > prev_time && millis() > SEND_PERIOD){
     // Send LoRa packet to receiver
+    prev_time = millis();
     D_print("Sending packet: ");
 
-    digitalWrite(LED_WEBSERVER,HIGH);
-    digitalWrite(SS_LORA, LOW);
-
+    // Composing the packet, sending it and using the LED as indicator
     String packet_send_now = String(String(NodeName.charAt(0)) + "," + String(session_identifier) + "," + String(packet_number) );
+    digitalWrite(LED_WEBSERVER,HIGH);
     LoRa.beginPacket();
     LoRa.print( packet_send_now );
-    // Set send packetin HTML in order to check how long it takes for packets to arrive
-
     LoRa.endPacket();
     digitalWrite(LED_WEBSERVER,LOW);
+    
+    // Printing to console and HTML page
     D_println( packet_send_now );
     ws.textAll( packet_send_now );
 
+    // Increase packet number and reset the timer
     packet_number++;
-    digitalWrite(SS_LORA, HIGH);
-    prev_time = millis();
 
   }
 }
