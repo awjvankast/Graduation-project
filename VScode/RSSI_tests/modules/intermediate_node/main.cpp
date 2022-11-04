@@ -125,6 +125,8 @@ void loop()
       {
         add_dataHeader = 0;
 
+        check_GPS_time_loc_sat();
+
         // See notes for the data format
         dataHeader = String(String(NodeName.charAt(0)) + "," + String(session_identifier) + "," + String(packet_number) + "," +
                             String(GPS_time) + "," + String(lat_long) + "," + String(num_sat) + "," + "A" + "," + Tx_ID + "\r\n" );
