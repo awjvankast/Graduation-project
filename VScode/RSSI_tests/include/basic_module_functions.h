@@ -1,5 +1,5 @@
 // Set to 1 to enable debugging and printing, 0 for disabling 
-#define DEBUG 1
+#define DEBUG 0
 
 // Used to enable or disable printing when debugging
 #if DEBUG
@@ -58,6 +58,14 @@
 #define LED_LOW_BAT 33
 #define LED_WEBSERVER 32    
 
+<<<<<<< Updated upstream
+=======
+<<<<<<< Updated upstream
+#define SEND_PERIOD 150
+#define MEASURE_PERIOD 2000
+#define MAX_QUEUE 75
+=======
+>>>>>>> Stashed changes
 #define SEND_PERIOD 125
 // Tx wait time cannot be more than PACKETS_PER_PERIOD * SEND_PERIOD
 // Otherwise unintended behaviour will happen
@@ -65,11 +73,19 @@
 // According to tests it can need to have around 711ms
 // Without print statements less
 #define TX_WAIT_TIME 800
+<<<<<<< Updated upstream
 #define MEASURE_PERIOD 100000
+=======
+#define MEASURE_PERIOD 20000
+>>>>>>> Stashed changes
 #define MAX_QUEUE 200
 #define MAX_PACKET_NUMBER 360000
 #define PACKETS_PER_PERIOD 8
 #define NUMBER_OF_TRX_MODULES 6
+<<<<<<< Updated upstream
+=======
+>>>>>>> Stashed changes
+>>>>>>> Stashed changes
 
 // SD card functions
 void initSDCard();
