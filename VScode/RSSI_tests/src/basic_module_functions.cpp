@@ -22,7 +22,7 @@ String lat_long;
 String num_sat;
 
 const char* ntpServer = "pool.ntp.org";
-const long  gmtOffset_sec = 3600;
+const long  gmtOffset_sec = 0;
 const int   daylightOffset_sec = 3600;
 
 void pin_SPI_initialization()
@@ -48,7 +48,7 @@ void pin_SPI_initialization()
   pinMode(LED_LOW_BAT, OUTPUT);
   
   // The multiply two comes from the voltage divider circuit for measuring voltages above 3.3V
-  float battery_voltage = analogRead(BAT_SENSE) / float(4095) * float(3.3) * float(2);
+  float battery_voltage = float(analogRead(BAT_SENSE)) / float(4095) * float(3.3) * float(2.0);
   D_print("Battery voltage: "); D_println(battery_voltage);
   D_print("Analog Read: "); D_println(analogRead(BAT_SENSE));
   if (battery_voltage < 3.42)
@@ -95,7 +95,7 @@ void all_modules_initialization()
   D_println("");
   D_println(F("LoRa initialized!"));
   LoRa.setSpreadingFactor(SF_FACTOR_TX_INTER);
-  LoRa.enableCrc();
+  //LoRa.enableCrc();
   D_println();
   digitalWrite(SS_LORA, HIGH);
 
