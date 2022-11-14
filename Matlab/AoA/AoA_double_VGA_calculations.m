@@ -1,6 +1,6 @@
 close all; clear; clc;
 
-gain_dB = 0:1:23;
+gain_dB = 0:.5:23;
 gain_pow = db2pow(gain_dB);
 
 %A = repmat(gain_pow,24,1);
@@ -24,18 +24,20 @@ end
 resolution = max(diff(steps));
 total_phase_simple = [steps, steps+90];
 total_phase = unique(total_phase_simple);
+% 500 ns gain settling time from spec sheet
 time = length(total_phase)*0.5 ;
 
 plot(1:length(total_phase),total_phase);
 text(0,20,sprintf("maximum resolution: %f",resolution));
-text(0,50,sprintf("Amount of time for entire sweep: %.2f ms",time));
+text(0,50,sprintf("Amount of time for entire sweep: %.2f microseconds",time));
 grid on;
 % Indicates the step size of the gain if two VGA's would be connected to a
 % combiner with one VGA 0 degree phase shift and one VGA 180 degrees phase
 % shifted
 
 legend("Double VGA 0 and 90 degree phase");
-ylabel("Phase");
+ylabel("Achieved phase delay [°]");
+xlabel("Gain steps [-]");
 
 %% Check if math is good
 % figure

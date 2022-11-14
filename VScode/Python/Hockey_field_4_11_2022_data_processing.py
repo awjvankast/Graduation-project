@@ -32,12 +32,14 @@ for k in range(len(data)):
 data = data.reset_index()
 
 for k in range(len(data)):
-    if data.loc[k][0] == "":
+    if data.loc[k][0] == "" or data.loc[k][1] == "":
         data = data.drop(k,axis = 0)
+
 
 data = data.reset_index()   
 
 binned = pd.DataFrame(index = range(1, len(data)), columns= ['B','C','D','E','F','G'])
+#binned = pd.DataFrame( columns= ['B','C','D','E','F','G'])
 
 # Creating dataframe to concatenate:
 # pd.DataFrame([1,2,3],columns = ['B'])
@@ -49,27 +51,25 @@ header_found = False
 for k in range(len(data)):
     if data.loc[k][0].isalpha() and len(data.loc[k][0]) == 1 and header_found :
         header_found = False
+        node = data[0][header_index]
         df_add = pd.DataFrame( data[header_index+1 : k][1])
         df_add = df_add.rename(columns = {1: data[0][header_index] })
         # need to change indices to packet number
         df_add.index = list(data.loc[(header_index+1) : (k-1)][0])
+        indices_to_be_added = data.loc[(header_index+1) : (k-1)][0].astype(int)
 
-        binned = pd.concat([binned,df_add])
+        binned[node][indices_to_be_added] = df_add[node]
+
+        #binned.iloc[indices_to_be_added][data.loc[header_index][0]] = df_add
+
+        #binned = binned.map
+
+        #binned = pd.concat([binned,df_add])
 
     if data.loc[k][0].isalpha() and len(data.loc[k][0]) == 1:
         header_index = k
         header_found = True
     
-
-
-
-
-if data.loc[0][0] == "A":
-    print(data.loc[0])
-    
-    #loops over columns
-for a in data:
-    print(a)
-
+binned.to_csv('NoordZuidLopen_processed.csv',index = False)
 
 print('end')

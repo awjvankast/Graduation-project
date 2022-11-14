@@ -95,20 +95,21 @@ void loop()
   // Checking for incoming messages from LoRa module
   if (LoRa.parsePacket())
   {
+    int a;
     D_println(micros());
-    D_print(LoRa.rssi());
+    a= LoRa.rssi();
       D_println(micros());
         D_println(micros());
-       D_print(LoRa.rssi());
-          D_print(LoRa.rssi());
-             D_print(LoRa.rssi());
-                D_print(LoRa.rssi());
-                   D_print(LoRa.rssi());
-                      D_print(LoRa.rssi());
-                         D_print(LoRa.rssi());
-                            D_print(LoRa.rssi());
-                               D_print(LoRa.rssi());
-                                  D_print(LoRa.rssi());
+    a= LoRa.rssi();
+       a= LoRa.rssi();
+          a= LoRa.rssi();
+             a= LoRa.rssi();
+                a= LoRa.rssi();
+                   a= LoRa.rssi();
+                      a= LoRa.rssi();
+                         a= LoRa.rssi();
+                            a= LoRa.rssi();
+                               a= LoRa.rssi();
                                           D_println(micros());
 
     String LoRaData;
