@@ -37,25 +37,23 @@ for k in range(len(data)):
 
 data = data.reset_index()   
 
-binned = pd.DataFrame(columns= ['B','C','D','E','F','G'])
+binned = pd.DataFrame(index = range(1, len(data)), columns= ['B','C','D','E','F','G'])
 
 # Creating dataframe to concatenate:
 # pd.DataFrame([1,2,3],columns = ['B'])
 # Concatenating: 
 # pd.concat([binned,df])
 
-
-
 # Taking relevant data and putting it in new format
 header_found = False
 for k in range(len(data)):
-
     if data.loc[k][0].isalpha() and len(data.loc[k][0]) == 1 and header_found :
         header_found = False
-        df_add = pd.DataFrame( data[header_index+1 : k-1][1])
+        df_add = pd.DataFrame( data[header_index+1 : k][1])
         df_add = df_add.rename(columns = {1: data[0][header_index] })
         # need to change indices to packet number
-        df_add.index = list( range( int(data.loc[header_index+1][0]), int(data.loc[k-1][0]) ))
+        df_add.index = list(data.loc[(header_index+1) : (k-1)][0])
+
         binned = pd.concat([binned,df_add])
 
     if data.loc[k][0].isalpha() and len(data.loc[k][0]) == 1:

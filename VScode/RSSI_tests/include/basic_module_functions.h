@@ -1,5 +1,5 @@
 // Set to 1 to enable debugging and printing, 0 for disabling 
-#define DEBUG 0
+#define DEBUG 1
 
 // Used to enable or disable printing when debugging
 #if DEBUG
