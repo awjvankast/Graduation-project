@@ -1,15 +1,12 @@
 import pandas as pd
 import numpy as np
 
-# TODO
-# fix the index mathcing issues, print binned for more info
-
 #test dataframe
 a = np.array([[1,2],[3,4]])
 b = pd.DataFrame(a)
 
 #data = pd.read_csv('NoordZuidLopen.txt', sep=',', encoding = "ISO-8859-1")
-data_import = pd.read_csv('NoordZuidLopen.csv', sep=';', encoding = 'ISO-8859-1',header = None)
+data_import = pd.read_csv('NoordOostZuidWestLopen.csv', sep=';', encoding = 'ISO-8859-1',header = None)
 data = data_import.fillna("")
 data = data.dropna()
 
@@ -70,6 +67,6 @@ for k in range(len(data)):
         header_index = k
         header_found = True
     
-binned.to_csv('NoordZuidLopen_processed.csv',index = False)
+binned.to_csv('NoordOostZuidWestLopen_processed.csv',index = False)
 
 print('end')

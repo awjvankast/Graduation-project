@@ -1,6 +1,6 @@
 close all; clear; clc;
 
-gain_dB = 0:.5:23;
+gain_dB = 0:1:23;
 gain_pow = db2pow(gain_dB);
 
 %A = repmat(gain_pow,24,1);
