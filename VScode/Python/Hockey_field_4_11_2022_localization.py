@@ -1,28 +1,20 @@
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib 
 import time
 from matplotlib.animation import FuncAnimation
+import matplotlib.animation as animation
+import PIL as pl
 
-#TODO
-# save the file for easy viewing
-# improve math model
+#TODO 
+# saving gives whitescreen
 
 data = pd.read_csv('NoordOostZuidWestLopen_processed.csv', sep=',')
 
-""" with Image.open("hockey_field.png") as im:
-    draw = ImageDraw.Draw(im)
-    draw.line((0, 0) + im.size, fill=128)
-    draw.line((0, im.size[1], im.size[0], 0), fill=128)
-    draw.ellipse((10,10,100,100), outline = (10,0,0))
-    im.show()
-    im.save("image_300.jpeg", dpi=(300, 300)) """
-
-fig, ax = plt.subplots()
-
 # Make a function which draws the coordinates of the nodes on the map 
 corner_point_coordinates = np.array([[480,780],[22,774],[28,391],[37,11],[495,16]])
-
+fig, ax = plt.subplots()
 img = plt.imread("hockey_field.png")
 xlim_img = img.shape[1]
 ylim_img = img.shape[0]
@@ -35,7 +27,7 @@ ax.imshow(img)
 
 # Make a math model here which relates RSSI values to the distance in metres
 def dist_model(x):
-    return 0.9 *pow(-x, 1.905)-270
+    return 0.9 *pow(-x, 1.905)-100
 
 # OG: 0.606 *pow(-x, 1.756)-278.8
 def round_zero(x):
@@ -88,14 +80,23 @@ def update(frame):
    
     return ax,
 
-
 # Necessary to let the image remain at the same boundary
 
-ani = FuncAnimation(fig, update, frames=500, interval = 1,
-                    init_func=init, blit=True)
+ani = FuncAnimation(fig, update, frames=500, interval = 50,
+                    init_func=init, blit=True, repeat = False)
 
-plt.imshow(img)
+
+
+matplotlib.rcParams['animation.ffmpeg_path'] = "C:\\Users\\s153480\\Desktop\\ffmpeg-2022-11-03-git-5ccd4d3060-full_build\\bin\\ffmpeg.exe"
+writer = animation.FFMpegWriter(fps=24, metadata=dict(artist='Me'))
+ani.save('anim.mp4', writer=writer) 
+# writervideo = animation.FFMpegFileWriter(fps=60)
+
+
+
+# plt.show()
 
 plt.show()
+
 
 print('end')
