@@ -76,14 +76,14 @@ end
         sprintf("VGA gain step of %.1f dB",gain_res_table(2)),...
         sprintf("VGA gain step of %.1f dB",gain_res_table(3))],'Location','NW');
     else 
-            lgd = legend([sprintf("Minimum resolution of %.1f°",minimum_desired_resolution_table(1)),...
-        sprintf("Minimum resolution of %.1f°",minimum_desired_resolution_table(2)),...
-        sprintf("Minimum resolution of %.1f°",minimum_desired_resolution_table(3))],'Location','NW');
+            lgd = legend([sprintf("Minimum resolution of %.1fÂ°",minimum_desired_resolution_table(1)),...
+        sprintf("Minimum resolution of %.1fÂ°",minimum_desired_resolution_table(2)),...
+        sprintf("Minimum resolution of %.1fÂ°",minimum_desired_resolution_table(3))],'Location','NW');
     end
     textSize = 16;
     lgd.FontSize = 14;
     ylabel("Gain steps [-]",'Fontsize',textSize);
-    xlabel("Achieved phase delay [°]",'Fontsize',textSize);
+    xlabel("Achieved phase delay [Â°]",'Fontsize',textSize);
     grid on;
     
 

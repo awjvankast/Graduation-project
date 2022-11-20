@@ -87,9 +87,9 @@ ani = FuncAnimation(fig, update, frames=500, interval = 50,
 
 
 
-matplotlib.rcParams['animation.ffmpeg_path'] = "C:\\Users\\s153480\\Desktop\\ffmpeg-2022-11-03-git-5ccd4d3060-full_build\\bin\\ffmpeg.exe"
-writer = animation.FFMpegWriter(fps=24, metadata=dict(artist='Me'))
-ani.save('anim.mp4', writer=writer) 
+# matplotlib.rcParams['animation.ffmpeg_path'] = "C:\\Users\\s153480\\Desktop\\ffmpeg-2022-11-03-git-5ccd4d3060-full_build\\bin\\ffmpeg.exe"
+# writer = animation.FFMpegWriter(fps=24, metadata=dict(artist='Me'))
+# ani.save('anim.mp4', writer=writer) 
 # writervideo = animation.FFMpegFileWriter(fps=60)
 
 
