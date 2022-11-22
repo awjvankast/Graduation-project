@@ -5,15 +5,17 @@ import matplotlib
 
 img = plt.imread("hockey_field.png")
 
-fig = plt.figure()
-fig.set_dpi(100)
-fig.set_size_inches(7, 6.5)
+fig, ax = plt.subplots()
+img = plt.imread("hockey_field.png")
+xlim_img = img.shape[1]
+ylim_img = img.shape[0]
 
-ax = plt.axes(xlim=(0, 20), ylim=(0, 20))
-patch = plt.Circle((5, -5), 0.75, fc='b')
+patch = {}
 
 
 def init():
+    global patch
+    patch = plt.Circle((5, -5), 0.75, fc='b')
     patch.center = (20, 20)
     ax.add_patch(patch)
     return patch,
@@ -33,7 +35,7 @@ anim = animation.FuncAnimation(fig, animate,
 plt.imshow(img,zorder=0,  extent=[0.1, 20.0, 0.1, 20.0])
 
 # WORKS!!!
-#matplotlib.rcParams['animation.ffmpeg_path'] = "C:\\Users\\s153480\\Desktop\\ffmpeg-2022-11-03-git-5ccd4d3060-full_build\\bin\\ffmpeg.exe"
-#writer = animation.FFMpegWriter(fps=24, metadata=dict(artist='Me'))
-#anim.save('the_movie.mp4', writer = writer)
+matplotlib.rcParams['animation.ffmpeg_path'] = "C:\\Users\\s153480\\Desktop\\ffmpeg-2022-11-03-git-5ccd4d3060-full_build\\bin\\ffmpeg.exe"
+writer = animation.FFMpegWriter(fps=24, metadata=dict(artist='Me'))
+anim.save('the_movie.mp4', writer = writer)
 plt.show()
