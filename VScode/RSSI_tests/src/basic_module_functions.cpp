@@ -20,6 +20,7 @@ char buffer[50];
 String GPS_time;
 String lat_long;
 String num_sat;
+int loc_updated = 0;
 
 const char* ntpServer = "pool.ntp.org";
 const long  gmtOffset_sec = 0;
@@ -441,6 +442,7 @@ void check_GPS_time_loc_sat()
 
     lat_long = String(gps.location.rawLat().deg) + "." + String(gps.location.rawLat().billionths) + "," 
     + String(gps.location.rawLng().deg) + "." + String(gps.location.rawLng().billionths );
+    loc_updated = 1;
     sprintf(buffer, "GPS time to be send: %s", lat_long);
     D_println(buffer);
   }
