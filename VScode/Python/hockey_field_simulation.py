@@ -15,6 +15,8 @@ from scipy import interpolate
 # Simulate with discrete steps in receiver resolution
 
 heatmap_on = 1
+pixel_res = 1
+
 animation_on = 0
 
 # Uncertainty of the direction of nodes
@@ -154,7 +156,6 @@ heatmap_xmax = np.max(corner_point_coordinates[:,0])-dist_node_hm
 heatmap_ymax = np.max(corner_point_coordinates[:,1])-dist_node_hm
 heatmap_data = np.empty((img.shape[1],img.shape[0]))
 heatmap_data[:] = np.nan
-pixel_res = 50
 
 if animation_on:
     ani = FuncAnimation(fig, update, frames=600, interval = 10,init_func=init, blit=True, repeat = False)
@@ -197,8 +198,8 @@ ax.yaxis.set_major_locator(matplotlib.ticker.FixedLocator((yax_val_list)))
 ax.yaxis.set_major_formatter(matplotlib.ticker.FixedFormatter((yax_name_list)))
 
 
-ax.set_xlabel('X coordinates [m]')
-ax.set_ylabel('Y coordinates [m]')
+ax.set_xlabel('X coordinates $[m]$')
+ax.set_ylabel('Y coordinates $[m]$')
 clrbar.ax.set_ylabel('Size of search area $[m^2]$')
 
 
