@@ -13,14 +13,15 @@ from scipy import interpolate
 
 #TODO
 # Simulate with discrete steps in receiver resolution
+save = 1
 
-heatmap_on = 0
-pixel_res = 1
+heatmap_on = 1
+pixel_res = 50
 
-animation_on = 1
+animation_on = 0
 
 # Uncertainty of the direction of nodes
-res_angle = 5
+res_angle = 10
 res_angle_arr = np.arange(0, 181-res_angle, res_angle)
 
 res_angle_rad = res_angle/360*2*np.pi
@@ -28,7 +29,7 @@ res_angle_rad = res_angle/360*2*np.pi
 corner_point_coordinates = np.array([[480,780],[22,774],[28,391],[37,11],[495,16]])
 sweep_first_point_coordinates = np.array([[-1200,600],[-300, -900],[500, -5000],[900,-50],[800, 1000]])
 
-Tx_coordinates = np.array([200,200])
+Tx_coordinates = np.array([322,280])
 
 hockey_field_width = 55
 hockey_field_height = 45.8*2
@@ -48,14 +49,14 @@ img = plt.imread("hockey_field.png")
 
 xlim_img = img.shape[1]
 ylim_img = img.shape[0]
-plt.scatter(corner_point_coordinates[:,0],corner_point_coordinates[:,1],marker = "2",clip_on = True, s= 75)
+plt.scatter(corner_point_coordinates[:,0],corner_point_coordinates[:,1],marker = "2",clip_on = True, s= 300, label = 'Rx position')
 
 plt.xlim( 0,xlim_img)
 plt.ylim( 0,ylim_img)
 ax.set_ylim(ax.get_ylim()[::-1])
 
 ax.imshow(img)
-fig.set_size_inches(15, 8)
+fig.set_size_inches(11, 7)
 
 hockey_field_width = 55
 
@@ -90,7 +91,10 @@ def update_triangles():
             pol_tri = Polygon([cur_node,cur_node+first_point_vec+sec_point, cur_node+first_point_vec-sec_point])
             if pol_tri.contains(Point(Tx_coordinates[0],Tx_coordinates[1])):
                 tri_area_calc[j] = pol_tri
-                pol_tri_plot = plt.Polygon([cur_node,cur_node+first_point_vec+sec_point, cur_node+first_point_vec-sec_point],color='b', fill = True, alpha =0.3)
+                if j == 'B':
+                    pol_tri_plot = plt.Polygon([cur_node,cur_node+first_point_vec+sec_point, cur_node+first_point_vec-sec_point],color='b', fill = True, alpha =0.3, label = 'Selected angle bin')
+                else:
+                    pol_tri_plot = plt.Polygon([cur_node,cur_node+first_point_vec+sec_point, cur_node+first_point_vec-sec_point],color='b', fill = True, alpha =0.3)
                 ax.add_patch(pol_tri_plot)
             rotate_origin = np.array([np.cos(res_angle_rad)*first_point_vec[0]-np.sin(res_angle_rad)*first_point_vec[1], np.sin(res_angle_rad)*first_point_vec[0] + np.cos(res_angle_rad)*first_point_vec[1] ])
             first_point = cur_node+rotate_origin
@@ -120,7 +124,7 @@ def update_triangles():
     #print("Area where Tx is with 100% certainty: " + str(pixels_to_metres_sqrt(certain_area))+ "m^2, hockey field is " + str(size_hockey_field)+"m^2")
     #print("Which is " + str(pixels_to_metres_sqrt(certain_area)/size_hockey_field*100)+ "% of the entire field")
 
-    Tx_plot = ax.scatter(Tx_coordinates[0],Tx_coordinates[1] ,marker="+", s = 30, color = 'darkred')
+    Tx_plot = ax.scatter(Tx_coordinates[0],Tx_coordinates[1] ,marker="+", s = 100, color = 'darkred', label = 'Tx position')
     if heatmap_on:
         return pixels_to_metres_sqrt(certain_area)
     else:
@@ -178,12 +182,13 @@ elif heatmap_on:
     ax.lines[0].remove()
     ax.collections[1].remove()
 
-
-    plt.imshow(np.transpose(heatmap_data), cmap='jet', interpolation='nearest', alpha = 0.9, label = "Minimal search area [$m^2$]")
+    plt.imshow(np.transpose(heatmap_data), cmap='jet', interpolation='nearest', label = "Minimal search area [m$^2$]")
     clrbar = plt.colorbar()
-    clrbar.ax.set_ylabel('Size of search area $[m^2]$')
-    for item in clrbar.ax.yaxis.label + clrbar.ax.get_yticklabels():
+    clrbar.ax.set_ylabel('Size of search area [m$^2]$')
+    for item in ([clrbar.ax.yaxis.label] + clrbar.ax.get_yticklabels()):
         item.set_fontsize(16)
+else:
+    update_triangles()
           
 
 
@@ -203,14 +208,29 @@ ax.yaxis.set_major_locator(matplotlib.ticker.FixedLocator((yax_val_list)))
 ax.yaxis.set_major_formatter(matplotlib.ticker.FixedFormatter((yax_name_list)))
 
 
-ax.set_xlabel('X coordinates $[m]$')
-ax.set_ylabel('Y coordinates $[m]$')
+ax.set_xlabel('X coordinates [m]')
+ax.set_ylabel('Y coordinates [m]')
 
 
 for item in ([ax.title, ax.xaxis.label, ax.yaxis.label] + 
              ax.get_xticklabels() + ax.get_yticklabels()):
     item.set_fontsize(16)
 
-plt.show()
+#ax.legend(fontsize = 16)
+
+
+
+
+if save and not heatmap_on:
+    ax.legend(loc='upper center', bbox_to_anchor=(0.5, 1.12),fontsize = 13,framealpha=1)
+    plt.show()
+    fig.savefig("Cones_example_hockey_field_v3.png",bbox_inches='tight', format = 'png')
+    fig.savefig("Cones_example_hockey_field_v3.eps",bbox_inches='tight', format = 'eps')
+elif save and heatmap_on:
+    ax.legend(loc='upper center', bbox_to_anchor=(0.5, 1.0),fontsize = 13,framealpha=1)
+    plt.show()
+    fig.savefig("Heatmap_hockey_field_v3.png",bbox_inches='tight', format = 'png')
+    fig.savefig("Heatmap_hockey_field_v3.eps",bbox_inches='tight', format = 'eps')
+
 
 print('end')
