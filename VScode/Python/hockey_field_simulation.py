@@ -8,17 +8,24 @@ import PIL as pl
 from shapely.geometry import Polygon
 from shapely.ops import cascaded_union
 from itertools import combinations
+from scipy import interpolate
 
 #TODO
-# Calculate correct area under the final polygon, can be done by:
+# Simulate with discrete steps in receiver resolution
 
+heatmap_on = 0
+animation_on = 1
 
 # Uncertainty of the direction of nodes
-res_angle = 8
+res_angle = 60
+res_angle_arr = np.arange(0, 181-res_angle, res_angle)
+
 res_angle_rad = res_angle/360*2*np.pi
 
 corner_point_coordinates = np.array([[480,780],[22,774],[28,391],[37,11],[495,16]])
-Tx_coordinates = np.array([50,50])
+sweep_first_point_coordinates = np.array([[-100,800],[-100, -900],[8, -500],[900,-50],[800, 1000]])
+
+Tx_coordinates = np.array([200,200])
 
 hockey_field_width = 55
 hockey_field_height = 45.8*2
@@ -30,13 +37,11 @@ def pixels_to_metres(pixels):
 def pixels_to_metres_sqrt(pixels):
     return pixels*normalization_factor**2
 
-
 fig, ax = plt.subplots()
 img = plt.imread("hockey_field.png")
 xlim_img = img.shape[1]
 ylim_img = img.shape[0]
 plt.scatter(corner_point_coordinates[:,0],corner_point_coordinates[:,1],marker = "2",clip_on = True, s= 75)
-
 
 plt.xlim( 0,xlim_img)
 plt.ylim( 0,ylim_img)
@@ -46,22 +51,6 @@ ax.imshow(img)
 fig.set_size_inches(15, 8)
 
 hockey_field_width = 55
-
-# Draw the walked path of this dataset on the map
-# plt.show()
-# char_arr = ["B","C","E","F","G"]
-# for k in range(0,5):
-#     # Draw the circles which relate the RSSI to distance 
-#     for j in char_arr:
-#         circle = plt.Circle((corner_point_coordinates[char_arr.index(j),0], corner_point_coordinates[char_arr.index(j),1]), distance_normalized[j][k], color='r', fill = False,clip_on = True)
-#         ax.add_patch(circle)
-#     plt.close()
-#     plt.show()
-#     time.sleep(1)
-
-
-    # Implement the LS algorithm from Matlab here to get to a location
-
 
 char_arr = ["B","C","E","F","G"]
 triangle = {}
@@ -77,6 +66,23 @@ def update_triangles():
         ax.lines[0].remove()
         ax.collections[1].remove()
 
+    cur_node =corner_point_coordinates[1,:]
+    first_point = np.array([-200,-500]) + cur_node
+    # Raster of detection triangles for each node
+    for j in char_arr:
+        cur_node = corner_point_coordinates[char_arr.index(j)]
+        first_point = sweep_first_point_coordinates[char_arr.index(j),:] + cur_node
+        for k in res_angle_arr:
+            
+            first_point_vec = first_point - cur_node
+            #sec_point = np.array([np.tan(res_angle_rad)*first_point_vec[0], -pow(first_point_vec[0],2)*np.tan(res_angle_rad)/first_point_vec[1] ])
+            sec_point = np.array([(first_point_vec[1]*np.tan(res_angle_rad/2)), -(first_point_vec[0]*np.tan(res_angle_rad/2))])
+            #pol_tri = plt.Polygon([cur_node,cur_node+first_point_vec,sec_point+first_point_vec+cur_node],color='m', fill = True)
+            pol_tri = plt.Polygon([cur_node,cur_node+first_point_vec+sec_point, cur_node+first_point_vec-sec_point],color='m', fill = True, alpha = 0.5)
+            if j == "F":
+                ax.add_patch(pol_tri)
+            first_point = cur_node+first_point_vec-sec_point*2
+
     for j in char_arr:
         current_node = corner_point_coordinates[char_arr.index(j)]
         scale_factor = 100
@@ -87,7 +93,7 @@ def update_triangles():
         
         tri_area_calc[j] = Polygon([current_node,point_triangle+Node_to_Tx_vec+current_node,-point_triangle+Node_to_Tx_vec+current_node])
 
-        ax.add_patch(triangle[j])
+        #ax.add_patch(triangle[j])
 
     intersect = tri_area_calc["B"]
     def intersection(shape1, shape2):
@@ -103,10 +109,10 @@ def update_triangles():
     #print("Which is " + str(pixels_to_metres_sqrt(certain_area)/size_hockey_field*100)+ "% of the entire field")
 
     Tx_plot = ax.scatter(Tx_coordinates[0],Tx_coordinates[1] ,marker="+", s = 30, color = 'darkred')
-
-    return Tx_plot, certain_area_plot, triangle
-
-
+    if heatmap_on:
+        return certain_area
+    else:
+        return 
 
 def init():
   #  ax.imshow(img)
@@ -127,16 +133,43 @@ def update(frame):
     #Tx_coordinates = Tx_coordinates + np.array([x,y])
     Tx_coordinates = np.array([x,y])
     
-    Tx, c_area, Tri = update_triangles()
+    #Tx, c_area, Tri = update_triangles()
+    update_triangles()
     return ax,
 
-ani = FuncAnimation(fig, update, frames=600, interval = 10,
-                    init_func=init, blit=True, repeat = False)
+dist_node_hm = 100
+heatmap_xmin = np.min(corner_point_coordinates[:,0])+dist_node_hm
+heatmap_ymin = np.min(corner_point_coordinates[:,1])+dist_node_hm
+heatmap_xmax = np.max(corner_point_coordinates[:,0])-dist_node_hm
+heatmap_ymax = np.max(corner_point_coordinates[:,1])-dist_node_hm
+heatmap_data = np.empty((img.shape[1],img.shape[0]))
+heatmap_data[:] = np.nan
+pixel_res = 1
 
-matplotlib.rcParams['animation.ffmpeg_path'] = "C:\\Users\\s153480\\Desktop\\ffmpeg-2022-11-03-git-5ccd4d3060-full_build\\bin\\ffmpeg.exe"
-writer = animation.FFMpegWriter(fps=24, metadata=dict(artist='Me'))
-ani.save('Hockey_field_simulation.mp4', writer = writer)
+if animation_on:
+    #ani = FuncAnimation(fig, update, frames=600, interval = 10,init_func=init, blit=True, repeat = False)
+    update_triangles()
+    #matplotlib.rcParams['animation.ffmpeg_path'] = "C:\\Users\\s153480\\Desktop\\ffmpeg-2022-11-03-git-5ccd4d3060-full_build\\bin\\ffmpeg.exe"
+    #writer = animation.FFMpegWriter(fps=24, metadata=dict(artist='Me'))
+    #ani.save('Hockey_field_simulation.mp4', writer = writer)
+elif heatmap_on:
+    Tx_coordinates = np.array([heatmap_xmin,heatmap_ymin])
+    for k in range(heatmap_xmin,heatmap_xmax):
+        for j in range(heatmap_ymin,heatmap_ymax):
+            if (j-heatmap_ymin) % pixel_res ==0 and (k-heatmap_xmin) % pixel_res == 0:
+                heatmap_data[k][j] = update_triangles()
+            Tx_coordinates = Tx_coordinates + np.array([0,1])
+        Tx_coordinates = Tx_coordinates - np.array([0,heatmap_ymax-heatmap_ymin]) + np.array([1,0])
+    
+    # Removing triangle lines
+    for k in range(0,len(char_arr)):
+        ax.patches[0].remove()
+    ax.lines[0].remove()
+    ax.collections[1].remove()
 
+
+#plt.imshow(np.transpose(heatmap_data), cmap='jet', interpolation='nearest', alpha = 0.9, label = "Minimal search area [$m^2$]")
+#clrbar = plt.colorbar()
 
 plt.show()
 

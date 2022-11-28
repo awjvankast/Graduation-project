@@ -89,9 +89,9 @@ void loop()
     }
 
       digitalWrite(LED_WEBSERVER,HIGH);
-      
+
       //D_print("Received message from intermediate node");
-      String dataMessage = String( LoRaData + "\r\n");
+      String dataMessage = String( LoRaData + "," + LoRa_RSSI + "\r\n");
       //D_print("Printing the length of the string received: "); D_println(LoRaData.length());
       appendFile(SD, "/ReceivedMessages.txt", dataMessage.c_str());
       // Send the LoRa data to the HTML page
