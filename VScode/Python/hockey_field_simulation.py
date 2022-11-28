@@ -14,13 +14,13 @@ from scipy import interpolate
 #TODO
 # Simulate with discrete steps in receiver resolution
 
-heatmap_on = 1
+heatmap_on = 0
 pixel_res = 1
 
-animation_on = 0
+animation_on = 1
 
 # Uncertainty of the direction of nodes
-res_angle = 10
+res_angle = 5
 res_angle_arr = np.arange(0, 181-res_angle, res_angle)
 
 res_angle_rad = res_angle/360*2*np.pi
@@ -181,6 +181,11 @@ elif heatmap_on:
 
     plt.imshow(np.transpose(heatmap_data), cmap='jet', interpolation='nearest', alpha = 0.9, label = "Minimal search area [$m^2$]")
     clrbar = plt.colorbar()
+    clrbar.ax.set_ylabel('Size of search area $[m^2]$')
+    for item in clrbar.ax.yaxis.label + clrbar.ax.get_yticklabels():
+        item.set_fontsize(16)
+          
+
 
 
 xax_name_list = np.array([0,10,20,30,40,50,60])
@@ -200,10 +205,9 @@ ax.yaxis.set_major_formatter(matplotlib.ticker.FixedFormatter((yax_name_list)))
 
 ax.set_xlabel('X coordinates $[m]$')
 ax.set_ylabel('Y coordinates $[m]$')
-clrbar.ax.set_ylabel('Size of search area $[m^2]$')
 
 
-for item in ([ax.title, ax.xaxis.label, ax.yaxis.label, clrbar.ax.yaxis.label] + clrbar.ax.get_yticklabels() +
+for item in ([ax.title, ax.xaxis.label, ax.yaxis.label] + 
              ax.get_xticklabels() + ax.get_yticklabels()):
     item.set_fontsize(16)
 
