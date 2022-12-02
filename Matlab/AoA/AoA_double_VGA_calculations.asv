@@ -89,14 +89,14 @@ end
         sprintf("%.1f dB VGA gain step",gain_res_table(2)),...
         sprintf("%.1f dB VGA gain step",gain_res_table(3))],'Location','NW');
     else 
-            lgd = legend([sprintf("Minimum resolution of %.1f°",minimum_desired_resolution_table(1)),...
-        sprintf("Minimum resolution of %.1f°",minimum_desired_resolution_table(2)),...
-        sprintf("Minimum resolution of %.1f°",minimum_desired_resolution_table(3))],'Location','NW');
+            lgd = legend([sprintf("Minimum resolution of %.1fÂ°",minimum_desired_resolution_table(1)),...
+        sprintf("Minimum resolution of %.1fÂ°",minimum_desired_resolution_table(2)),...
+        sprintf("Minimum resolution of %.1fÂ°",minimum_desired_resolution_table(3))],'Location','NW');
     end
     textSize = 16;
     lgd.FontSize = 14;
     ylabel("Gain steps [-]",'Fontsize',textSize);
-    xlabel("Achieved phase delay [°]",'Fontsize',textSize);
+    xlabel("Achieved phase delay [Â°]",'Fontsize',textSize);
     grid on;
     
 
@@ -152,7 +152,7 @@ amp_diff = 0;
 lowest_change_amp = 1;
 
 for k = 1:length(Tx_total(:,1))
-    sin_plot = plot(x,[Tx1_signal(k,:);alpha(k)*Tx2_signal_temp;Tx1_signal + alpha(k)*Tx2_signal(k,:)]);
+    sin_plot = plot(x,[Tx1_signal(k,:);Tx2_signal_temp;Tx_total(k,:)]);
 
     rms_plot = yline(rms(Tx_total(k,:)));
 
@@ -163,11 +163,11 @@ for k = 1:length(Tx_total(:,1))
         lowest_change_amp = rms_diff;
     end
     text(0,0.2,sprintf("Amp change since last step: %.5f",rms_diff));
-    %ylim([-1 2.5]);
+    ylim([-1 2.5]);
     grid on;
     %imwrite(gcf,'testAnimated.gif');
     %exportgraphics(gcf,'testAnimated.gif','Append',true);
-    pause(.5);
+    pause(1);
     
     max_last_step = rms(Tx_total(k,:));
     if k ~= length(Tx_total(:,1))
