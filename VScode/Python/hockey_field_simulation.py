@@ -16,20 +16,21 @@ from scipy import interpolate
 save = 1
 
 heatmap_on = 1
-pixel_res = 50
+pixel_res = 1
+cone_plot = 0
 
 animation_on = 0
 
 # Uncertainty of the direction of nodes
-res_angle = 10
+res_angle = 5
 res_angle_arr = np.arange(0, 181-res_angle, res_angle)
 
 res_angle_rad = res_angle/360*2*np.pi
 
 corner_point_coordinates = np.array([[480,780],[22,774],[28,391],[37,11],[495,16]])
-sweep_first_point_coordinates = np.array([[-1200,600],[-300, -900],[500, -5000],[900,-50],[800, 1000]])
+sweep_first_point_coordinates = np.array([[-1200,600],[-300, -900],[500, -7300],[900,-50],[800, 1000]])
 
-Tx_coordinates = np.array([322,280])
+Tx_coordinates = np.array([340,410])
 
 hockey_field_width = 55
 hockey_field_height = 45.8*2
@@ -49,7 +50,10 @@ img = plt.imread("hockey_field.png")
 
 xlim_img = img.shape[1]
 ylim_img = img.shape[0]
-plt.scatter(corner_point_coordinates[:,0],corner_point_coordinates[:,1],marker = "2",clip_on = True, s= 300, label = 'Rx position')
+if cone_plot:
+    plt.scatter(corner_point_coordinates[2,0],corner_point_coordinates[2,1],marker = "2",clip_on = True, s= 300, label = 'Rx position',zorder = 2)
+else:
+    plt.scatter(corner_point_coordinates[:,0],corner_point_coordinates[:,1],marker = "2",clip_on = True, s= 300, label = 'Rx position',zorder = 2)
 
 plt.xlim( 0,xlim_img)
 plt.ylim( 0,ylim_img)
@@ -89,13 +93,20 @@ def update_triangles():
             sec_point = np.array([(first_point_vec[1]*np.tan(res_angle_rad/2)), -(first_point_vec[0]*np.tan(res_angle_rad/2))])
             #pol_tri = plt.Polygon([cur_node,cur_node+first_point_vec,sec_point+first_point_vec+cur_node],color='m', fill = True)
             pol_tri = Polygon([cur_node,cur_node+first_point_vec+sec_point, cur_node+first_point_vec-sec_point])
+            if j == 'E' and cone_plot:
+                if k == 0:
+                    fan_plot= plt.Polygon([cur_node,cur_node+first_point_vec+sec_point, cur_node+first_point_vec-sec_point],color='m', fill = True, alpha =0.3,label = 'Angle bin')
+                else:
+                    fan_plot= plt.Polygon([cur_node,cur_node+first_point_vec+sec_point, cur_node+first_point_vec-sec_point],color='m', fill = True, alpha =0.3)
+                ax.add_patch(fan_plot)
             if pol_tri.contains(Point(Tx_coordinates[0],Tx_coordinates[1])):
                 tri_area_calc[j] = pol_tri
                 if j == 'B':
                     pol_tri_plot = plt.Polygon([cur_node,cur_node+first_point_vec+sec_point, cur_node+first_point_vec-sec_point],color='b', fill = True, alpha =0.3, label = 'Selected angle bin')
                 else:
                     pol_tri_plot = plt.Polygon([cur_node,cur_node+first_point_vec+sec_point, cur_node+first_point_vec-sec_point],color='b', fill = True, alpha =0.3)
-                ax.add_patch(pol_tri_plot)
+                if not cone_plot:
+                    ax.add_patch(pol_tri_plot)
             rotate_origin = np.array([np.cos(res_angle_rad)*first_point_vec[0]-np.sin(res_angle_rad)*first_point_vec[1], np.sin(res_angle_rad)*first_point_vec[0] + np.cos(res_angle_rad)*first_point_vec[1] ])
             first_point = cur_node+rotate_origin
 
@@ -118,13 +129,14 @@ def update_triangles():
     for j in tri_area_calc:
         intersect = intersection(intersect, tri_area_calc[j])
 
-    certain_area_plot = ax.plot(*intersect.exterior.xy,label = 'Area of 100% certainty', color = 'r')
+    if not cone_plot:
+        certain_area_plot = ax.plot(*intersect.exterior.xy,label = 'Area of 100% certainty', color = 'r')
     certain_area = intersect.area
 
     #print("Area where Tx is with 100% certainty: " + str(pixels_to_metres_sqrt(certain_area))+ "m^2, hockey field is " + str(size_hockey_field)+"m^2")
     #print("Which is " + str(pixels_to_metres_sqrt(certain_area)/size_hockey_field*100)+ "% of the entire field")
-
-    Tx_plot = ax.scatter(Tx_coordinates[0],Tx_coordinates[1] ,marker="+", s = 100, color = 'darkred', label = 'Tx position')
+    if not cone_plot:
+        Tx_plot = ax.scatter(Tx_coordinates[0],Tx_coordinates[1] ,marker="+", s = 100, color = 'darkred', label = 'Tx position',zorder = 2)
     if heatmap_on:
         return pixels_to_metres_sqrt(certain_area)
     else:
@@ -218,8 +230,10 @@ for item in ([ax.title, ax.xaxis.label, ax.yaxis.label] +
 
 #ax.legend(fontsize = 16)
 
-
-
+if cone_plot:
+    ax.legend(loc='upper center', bbox_to_anchor=(0.5, 1),fontsize = 13,framealpha=1)
+    plt.show()
+    fig.savefig("Cone_bin_example.png",bbox_inches='tight', format = 'png')
 
 if save and not heatmap_on:
     ax.legend(loc='upper center', bbox_to_anchor=(0.5, 1.12),fontsize = 13,framealpha=1)

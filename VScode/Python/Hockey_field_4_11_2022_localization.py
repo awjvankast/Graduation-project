@@ -7,13 +7,14 @@ from matplotlib.animation import FuncAnimation
 import matplotlib.animation as animation
 import PIL as pl
 
-#TODO 
-# saving gives whitescreen
+
+ani_on = 0
+pixel_step_size = 1
 
 data = pd.read_csv('NoordOostZuidWestLopen_processed.csv', sep=',')
 
 # Make a function which draws the coordinates of the nodes on the map 
-corner_point_coordinates = np.array([[480,780],[22,774],[28,391],[37,11],[495,16]])
+corner_point_coordinates =  np.array([[480,780],[22,774],[28,391],[37,11],[495,16]])
 fig, ax = plt.subplots()
 img = plt.imread("hockey_field.png")
 xlim_img = img.shape[1]
@@ -27,7 +28,7 @@ ax.imshow(img)
 
 # Make a math model here which relates RSSI values to the distance in metres
 def dist_model(x):
-    return 0.9 *pow(-x, 1.905)-100
+    return 1.42e-11 *pow(-x, 6.323)
 
 # OG: 0.606 *pow(-x, 1.756)-278.8
 def round_zero(x):
@@ -36,7 +37,8 @@ def round_zero(x):
     else:
         return x
 
-distance = data.copy().fillna(0).apply(dist_model).apply(lambda x: x/100)
+#distance = data.copy().fillna(0).apply(dist_model).apply(lambda x: x/100)
+distance = data.copy().fillna(0).apply(dist_model)
 distance[distance<0] = 0
 
 hockey_field_width = 55
@@ -70,21 +72,68 @@ for j in char_arr:
 def init():
     ax.imshow(img)
     frame_number.set_text("0")
+    Tx_plot = ax.scatter(-100,-100 ,marker="+", s = 100, color = 'darkred', label = 'Tx estimated position',zorder = 2)
     return ax,
 
 def update(frame):
     # Draw the circles which relate the RSSI to distance 
+    #frame = frame +300
+    ax.collections[3].remove()
     for j in char_arr:
         circle[j].radius = distance_normalized[j][frame]
     frame_number.set_text(frame)
+
+    least_dist = 1e4
+    least_coord = []
+    for k in range (0,img.shape[1],pixel_step_size):
+        for l in range(0,img.shape[0],pixel_step_size):
+            tot_dist = 0
+            for m in char_arr:
+                # Minimum circle size 
+                if circle[m].radius>10:
+                    tot_dist = tot_dist + abs( np.linalg.norm(np.array([k,l])-circle[m].center)-circle[m].radius )
+            
+            if tot_dist < least_dist:
+                least_dist = tot_dist
+                least_coord = np.array([k,l])
+    #print(least_dist)
+    #print(least_coord)
+    Tx_plot = ax.scatter(least_coord[0],least_coord[1] ,marker="+", s = 100, color = 'darkred', label = 'Tx estimated position',zorder = 2)
    
     return ax,
 
 # Necessary to let the image remain at the same boundary
-
-ani = FuncAnimation(fig, update, frames=500, interval = 50,
+if ani_on:
+    ani = FuncAnimation(fig, update, frames=700, interval = 1,
                     init_func=init, blit=True, repeat = False)
+else:
+    cur_frame = 10
+    init()
+    for j in char_arr:
+        circle[j].radius = distance_normalized[j][cur_frame]
+    frame_number.set_text(cur_frame)
 
+    pixel_step_size = 5
+    least_dist = 1e4
+    least_coord = []
+    for k in range (0,img.shape[1],pixel_step_size):
+        for l in range(0,img.shape[0],pixel_step_size):
+            tot_dist = 0
+            for m in char_arr:
+                # Minimum circle size 
+                if circle[m].radius>10:
+                    tot_dist = tot_dist + abs( np.linalg.norm(np.array([k,l])-circle[m].center)-circle[m].radius )
+            
+            if tot_dist < least_dist:
+                least_dist = tot_dist
+                least_coord = np.array([k,l])
+    print(least_dist)
+    print(least_coord)
+    Tx_plot = ax.scatter(least_coord[0],least_coord[1] ,marker="+", s = 100, color = 'darkred', label = 'Tx estimated position',zorder = 2)
+
+            
+            
+    
 
 
 # matplotlib.rcParams['animation.ffmpeg_path'] = "C:\\Users\\s153480\\Desktop\\ffmpeg-2022-11-03-git-5ccd4d3060-full_build\\bin\\ffmpeg.exe"
