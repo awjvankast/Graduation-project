@@ -16,13 +16,12 @@ from scipy import interpolate
 save = 1
 
 heatmap_on = 1
-pixel_res = 1
-cone_plot = 0
+pixel_res = 50
 
 animation_on = 0
 
 # Uncertainty of the direction of nodes
-res_angle = 5
+res_angle = 10
 res_angle_arr = np.arange(0, 181-res_angle, res_angle)
 
 res_angle_rad = res_angle/360*2*np.pi
