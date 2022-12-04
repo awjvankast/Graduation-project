@@ -15,13 +15,14 @@ from scipy import interpolate
 # Simulate with discrete steps in receiver resolution
 save = 1
 
-heatmap_on = 1
+heatmap_on = 0
 pixel_res = 50
+cone_plot = 0
 
 animation_on = 0
 
 # Uncertainty of the direction of nodes
-res_angle = 10
+res_angle = 5
 res_angle_arr = np.arange(0, 181-res_angle, res_angle)
 
 res_angle_rad = res_angle/360*2*np.pi
@@ -202,7 +203,7 @@ else:
     update_triangles()
           
 
-
+plt.show()
 
 xax_name_list = np.array([0,10,20,30,40,50,60])
 xax_val_list = metres_to_pixels(xax_name_list)

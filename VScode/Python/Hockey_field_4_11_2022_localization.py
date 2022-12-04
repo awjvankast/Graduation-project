@@ -11,6 +11,14 @@ import PIL as pl
 ani_on = 0
 pixel_step_size = 1
 
+def pixels_to_metres(pixels):
+    return pixels*normalization_factor
+def metres_to_pixels(metres):
+    return metres*(1/normalization_factor)
+
+def pixels_to_metres_sqrt(pixels):
+    return pixels*normalization_factor**2
+
 data = pd.read_csv('NoordOostZuidWestLopen_processed.csv', sep=',')
 
 # Make a function which draws the coordinates of the nodes on the map 
@@ -71,7 +79,8 @@ for j in char_arr:
 
 def init():
     ax.imshow(img)
-    frame_number.set_text("0")
+    if ani_on:
+        frame_number.set_text("0")
     Tx_plot = ax.scatter(-100,-100 ,marker="+", s = 100, color = 'darkred', label = 'Tx estimated position',zorder = 2)
     return ax,
 
@@ -107,11 +116,10 @@ if ani_on:
     ani = FuncAnimation(fig, update, frames=700, interval = 1,
                     init_func=init, blit=True, repeat = False)
 else:
-    cur_frame = 10
+    cur_frame = 0
     init()
     for j in char_arr:
         circle[j].radius = distance_normalized[j][cur_frame]
-    frame_number.set_text(cur_frame)
 
     pixel_step_size = 5
     least_dist = 1e4
@@ -144,6 +152,25 @@ else:
 
 
 # plt.show()
+
+xax_name_list = np.array([0,10,20,30,40,50,60])
+xax_val_list = metres_to_pixels(xax_name_list)
+
+ax.xaxis.set_major_locator(matplotlib.ticker.FixedLocator((xax_val_list)))
+ax.xaxis.set_major_formatter(matplotlib.ticker.FixedFormatter((xax_name_list)))
+
+ax.set_ylim(ax.get_ylim()[::-1])
+
+yax_name_list = np.array([0,10,20,30,40,50,60,70,80,90,100,110])
+yax_val_list = metres_to_pixels(yax_name_list)
+
+ax.yaxis.set_major_locator(matplotlib.ticker.FixedLocator((yax_val_list)))
+ax.yaxis.set_major_formatter(matplotlib.ticker.FixedFormatter((yax_name_list)))
+
+
+ax.set_xlabel('X coordinates [m]')
+ax.set_ylabel('Y coordinates [m]')
+
 
 plt.show()
 
