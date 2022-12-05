@@ -203,7 +203,7 @@ else:
     update_triangles()
           
 
-plt.show()
+
 
 xax_name_list = np.array([0,10,20,30,40,50,60])
 xax_val_list = metres_to_pixels(xax_name_list)
