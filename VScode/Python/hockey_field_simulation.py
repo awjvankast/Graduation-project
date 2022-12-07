@@ -19,7 +19,7 @@ heatmap_on = 0
 pixel_res = 50
 cone_plot = 0
 
-animation_on = 0
+animation_on = 1
 
 # Uncertainty of the direction of nodes
 res_angle = 5
@@ -46,7 +46,7 @@ def pixels_to_metres_sqrt(pixels):
     return pixels*normalization_factor**2
 
 fig, ax = plt.subplots()
-img = plt.imread("hockey_field.png")
+img = plt.imread("hockey_field_edit.png")
 
 xlim_img = img.shape[1]
 ylim_img = img.shape[0]

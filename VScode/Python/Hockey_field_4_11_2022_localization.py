@@ -33,7 +33,7 @@ data = pd.read_csv('NoordOostZuidWestLopen_processed.csv', sep=',')
 # Make a function which draws the coordinates of the nodes on the map 
 corner_point_coordinates =  np.array([[480,780],[22,774],[28,391],[37,11],[495,16]])
 fig, ax = plt.subplots()
-img = plt.imread("hockey_field.png")
+img = plt.imread("hockey_field_edit.png")
 xlim_img = img.shape[1]
 ylim_img = img.shape[0]
 plt.scatter(corner_point_coordinates[:,0],corner_point_coordinates[:,1],marker = "2",clip_on = True, s= 20*2**marksize, label = 'Rx position',zorder = 2,linewidths=scat_width)
@@ -186,7 +186,7 @@ elif plot_real_Tx:
     merror = pixels_to_metres(terror)
     mean_err = np.mean(merror)    
     print(mean_err)   
-    plt.scatter(tcoord[:,0],tcoord[:,1],marker = ".", s = 25,color = 'darkred',label = 'Tx estimated position')
+    plt.scatter(tcoord[:,0],tcoord[:,1],marker = ".", s = 25,color = 'r',label = 'Tx estimated position')
     plt.plot( [corner_point_coordinates[1,0],corner_point_coordinates[4,0]] ,[corner_point_coordinates[1,1],corner_point_coordinates[4,1]] ,color = 'black',label = 'Path traveled')
     for k in range(0,len(char_arr)):
         ax.patches[0].remove()
