@@ -15,15 +15,18 @@ from scipy import interpolate
 # Simulate with discrete steps in receiver resolution
 save = 1
 
-heatmap_on = 0
-pixel_res = 50
+heatmap_on = 1
+pixel_res = 1
 cone_plot = 0
 
-animation_on = 1
+animation_on = 0
 
 # Uncertainty of the direction of nodes
 res_angle = 5
 res_angle_arr = np.arange(0, 181-res_angle, res_angle)
+
+scat_width = 3
+marksize = 4
 
 res_angle_rad = res_angle/360*2*np.pi
 
@@ -51,9 +54,9 @@ img = plt.imread("hockey_field_edit.png")
 xlim_img = img.shape[1]
 ylim_img = img.shape[0]
 if cone_plot:
-    plt.scatter(corner_point_coordinates[2,0],corner_point_coordinates[2,1],marker = "2",clip_on = True, s= 300, label = 'Rx position',zorder = 2)
+    plt.scatter(corner_point_coordinates[2,0],corner_point_coordinates[2,1],marker = "2",clip_on = True, label = 'TRx position',zorder = 2,linewidths=scat_width, s = 20*2**marksize)
 else:
-    plt.scatter(corner_point_coordinates[:,0],corner_point_coordinates[:,1],marker = "2",clip_on = True, s= 300, label = 'Rx position',zorder = 2)
+    plt.scatter(corner_point_coordinates[:,0],corner_point_coordinates[:,1],marker = "2",clip_on = True, label = 'TRx position',zorder = 2,linewidths=scat_width, s = 20*2**marksize)
 
 plt.xlim( 0,xlim_img)
 plt.ylim( 0,ylim_img)
@@ -95,9 +98,9 @@ def update_triangles():
             pol_tri = Polygon([cur_node,cur_node+first_point_vec+sec_point, cur_node+first_point_vec-sec_point])
             if j == 'E' and cone_plot:
                 if k == 0:
-                    fan_plot= plt.Polygon([cur_node,cur_node+first_point_vec+sec_point, cur_node+first_point_vec-sec_point],color='m', fill = True, alpha =0.3,label = 'Angle bin')
+                    fan_plot= plt.Polygon([cur_node,cur_node+first_point_vec+sec_point, cur_node+first_point_vec-sec_point],color='m', fill = True, alpha =0.35,label = 'Angle bin')
                 else:
-                    fan_plot= plt.Polygon([cur_node,cur_node+first_point_vec+sec_point, cur_node+first_point_vec-sec_point],color='m', fill = True, alpha =0.3)
+                    fan_plot= plt.Polygon([cur_node,cur_node+first_point_vec+sec_point, cur_node+first_point_vec-sec_point],color='m', fill = True, alpha =0.35)
                 ax.add_patch(fan_plot)
             if pol_tri.contains(Point(Tx_coordinates[0],Tx_coordinates[1])):
                 tri_area_calc[j] = pol_tri
@@ -130,13 +133,13 @@ def update_triangles():
         intersect = intersection(intersect, tri_area_calc[j])
 
     if not cone_plot:
-        certain_area_plot = ax.plot(*intersect.exterior.xy,label = 'Area of 100% certainty', color = 'r')
+        certain_area_plot = ax.plot(*intersect.exterior.xy,label = 'Tx estimated area', color = 'r')
     certain_area = intersect.area
 
     #print("Area where Tx is with 100% certainty: " + str(pixels_to_metres_sqrt(certain_area))+ "m^2, hockey field is " + str(size_hockey_field)+"m^2")
     #print("Which is " + str(pixels_to_metres_sqrt(certain_area)/size_hockey_field*100)+ "% of the entire field")
     if not cone_plot:
-        Tx_plot = ax.scatter(Tx_coordinates[0],Tx_coordinates[1] ,marker="+", s = 100, color = 'darkred', label = 'Tx position',zorder = 2)
+        Tx_plot = ax.scatter(Tx_coordinates[0],Tx_coordinates[1] ,marker="x", color = 'silver', label = 'Tx real position',zorder = 2,linewidths=scat_width, s = 50)
     if heatmap_on:
         return pixels_to_metres_sqrt(certain_area)
     else:
@@ -165,7 +168,7 @@ def update(frame):
     update_triangles()
     return ax,
 
-dist_node_hm = 100
+dist_node_hm = 25
 heatmap_xmin = np.min(corner_point_coordinates[:,0])+dist_node_hm
 heatmap_ymin = np.min(corner_point_coordinates[:,1])+dist_node_hm
 heatmap_xmax = np.max(corner_point_coordinates[:,0])-dist_node_hm
@@ -202,7 +205,6 @@ elif heatmap_on:
 else:
     update_triangles()
           
-
 
 
 xax_name_list = np.array([0,10,20,30,40,50,60])

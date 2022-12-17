@@ -10,14 +10,14 @@ import PIL as pl
 ani_on = 0
 save_ani_data = 0
 pixel_step_size = 1
-plot_tot_Tx = 1
-plot_single = 0
+plot_tot_Tx = 0
+plot_single = 1
 
 
 hockey_field_width = 55
 normalization_factor = 458/hockey_field_width
 
-marksize = 3
+marksize = 4
 scat_width = 3
 
 def pixels_to_metres(pixels):
@@ -36,7 +36,7 @@ fig, ax = plt.subplots()
 img = plt.imread("hockey_field_edit.png")
 xlim_img = img.shape[1]
 ylim_img = img.shape[0]
-plt.scatter(corner_point_coordinates[:,0],corner_point_coordinates[:,1],marker = "2",clip_on = True, s= 20*2**marksize, label = 'Rx position',zorder = 2,linewidths=scat_width)
+plt.scatter(corner_point_coordinates[:,0],corner_point_coordinates[:,1],marker = "2",clip_on = True, s= 20*2**marksize, label = 'TRx position',zorder = 2,linewidths=scat_width)
 plt.xlim( 0,xlim_img)
 plt.ylim( 0,ylim_img)
 ax.set_ylim(ax.get_ylim()[::-1])
@@ -141,7 +141,7 @@ def update(frame):
                 least_coord = np.array([k,l])
     #print(least_dist)
     #print(least_coord)
-    Tx_plot = ax.scatter(least_coord[0],least_coord[1] ,marker="+", s =  20*2**marksize, color = 'darkred', label = 'Tx estimated position',zorder = 2,linewidths=scat_width)
+    Tx_plot = ax.scatter(least_coord[0],least_coord[1] ,marker="+", s =  20*2**marksize, color = 'red', label = 'Tx estimated position',zorder = 2,linewidths=scat_width)
     real_Tx = plot_real_Tx(frame)
     global tot_Tx_error
     global tot_Tx_coord
@@ -178,7 +178,7 @@ elif plot_single:
                 least_coord = np.array([k,l])
     print(least_dist)
     print(least_coord)
-    Tx_plot = ax.scatter(least_coord[0],least_coord[1] ,marker="+", s = 20*2**marksize, color = 'darkred', label = 'Tx estimated position',zorder = 2,linewidths=scat_width)
+    Tx_plot = ax.scatter(least_coord[0],least_coord[1] ,marker="+", s = 20*2**marksize, color = 'red', label = 'Tx estimated position',zorder = 2,linewidths=scat_width)
     plot_real_Tx(cur_frame)
 elif plot_real_Tx:
     tcoord = np.load('TotTxcoord.npy')
@@ -187,7 +187,7 @@ elif plot_real_Tx:
     mean_err = np.mean(merror)    
     print(mean_err)   
     plt.scatter(tcoord[:,0],tcoord[:,1],marker = ".", s = 25,color = 'r',label = 'Tx estimated position')
-    plt.plot( [corner_point_coordinates[1,0],corner_point_coordinates[4,0]] ,[corner_point_coordinates[1,1],corner_point_coordinates[4,1]] ,color = 'black',label = 'Path traveled')
+    plt.plot( [corner_point_coordinates[1,0],corner_point_coordinates[4,0]] ,[corner_point_coordinates[1,1],corner_point_coordinates[4,1]] ,color = 'black',label = 'Tx real path traveled')
     for k in range(0,len(char_arr)):
         ax.patches[0].remove()
             
