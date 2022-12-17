@@ -7,10 +7,10 @@ from matplotlib.animation import FuncAnimation
 import matplotlib.animation as animation
 import PIL as pl
 
-ani_on = 0
+ani_on = 1
 save_ani_data = 0
-pixel_step_size = 1
-plot_tot_Tx = 1
+pixel_step_size = 10
+plot_tot_Tx = 0
 plot_single = 0
 
 

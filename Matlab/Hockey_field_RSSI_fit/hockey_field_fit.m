@@ -19,17 +19,20 @@ b =       6.323;
 x = 60:0.001:105;
 fit = a.*x.^b;
 
-scatter(-bins,dist);
+scat=scatter(-bins,dist,'o','MarkerFaceColor','b','MarkerEdgeColor','b');
+al = .8;
+scat.MarkerFaceAlpha = al;
+scat.MarkerEdgeAlpha = al;
 hold on;
 grid on;
     textsize = 16;
-plot(-x,fit,'LineWidth', 1);
+plot(-x,fit,'LineWidth', 2);
 ax = gca;
 ax.FontSize = 12;
 xlim([-105,-60]);
 ylabel(['Distance [m]'],FontSize=textsize);
 xlabel('RSSI [dBm]',FontSize = textsize);
-legend('Measurement points', 'Fit',location = 'NE',FontSize = textsize);
+legend('Measurement points', 'Inverse-square based fit',location = 'NE',FontSize = textsize);
 
 
 %ax.XAxis.TickValues = -flip(ax.XAxis.TickValues);

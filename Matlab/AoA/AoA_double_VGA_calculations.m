@@ -96,7 +96,7 @@ end
     textSize = 16;
     lgd.FontSize = 14;
     ylabel("Gain steps [-]",'Fontsize',textSize);
-    xlabel("Achieved phase delay [°]",'Fontsize',textSize);
+    xlabel("\phi_{sweep} [°]",'Fontsize',textSize);
     grid on;
     
 
@@ -167,7 +167,7 @@ for k = 1:length(Tx_total(:,1))
     grid on;
     %imwrite(gcf,'testAnimated.gif');
     %exportgraphics(gcf,'testAnimated.gif','Append',true);
-    pause(.5);
+    pause(.0001);
     
     max_last_step = rms(Tx_total(k,:));
     if k ~= length(Tx_total(:,1))

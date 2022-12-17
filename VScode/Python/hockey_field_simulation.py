@@ -156,8 +156,8 @@ def update(frame):
     #     circle[j].radius = distance_normalized[j][frame]
     # frame_number.set_text(frame)
     global Tx_coordinates 
-    x = 250 + 90 * np.sin(np.radians(frame))
-    y = 400 + 175 * np.cos(np.radians(frame))
+    x = 250 + 200 * np.sin(np.radians(frame))
+    y = 400 + 200 * np.cos(np.radians(frame))
     #Tx_coordinates = Tx_coordinates + np.array([x,y])
     Tx_coordinates = np.array([x,y])
     
