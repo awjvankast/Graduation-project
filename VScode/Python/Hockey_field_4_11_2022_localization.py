@@ -12,8 +12,7 @@ save_ani_data = 0
 pixel_step_size = 10
 plot_tot_Tx = 0
 plot_single = 0
-
-
+frame_num_on = 0
 
 hockey_field_width = 55
 normalization_factor = 458/hockey_field_width
@@ -79,7 +78,8 @@ distance_normalized = distance.apply(lambda x: x*normalization_factor)
 char_arr = ["B","C","E","F","G"]
 circle = {}
 
-frame_number = ax.text(50,100, "", fontsize=15)
+if frame_num_on:
+    frame_number = ax.text(50,100, "", fontsize=15)
 
 for j in char_arr:
     if j == 'B':
@@ -111,8 +111,8 @@ def plot_real_Tx(frame):
     return real_Tx
 def init():
     ax.imshow(img)
-    if ani_on:
-        frame_number.set_text("0")
+    #if ani_on:
+        #frame_number.set_text("0")
     Tx_plot = ax.scatter(-100,-100 ,marker="+", s = 100, color = 'darkred',zorder = 2,linewidths=scat_width)
     return ax,
 
@@ -125,7 +125,8 @@ def update(frame):
         ax.collections[5].remove()
     for j in char_arr:
         circle[j].radius = distance_normalized[j][frame]
-    frame_number.set_text(frame)
+    if frame_num_on:
+        frame_number.set_text(frame)
 
     least_dist = 1e4
     least_coord = []

@@ -15,8 +15,8 @@ from scipy import interpolate
 # Simulate with discrete steps in receiver resolution
 save = 1
 
-heatmap_on = 1
-pixel_res = 1
+heatmap_on = 0
+pixel_res = 5
 cone_plot = 0
 
 animation_on = 0
@@ -175,6 +175,7 @@ heatmap_xmax = np.max(corner_point_coordinates[:,0])-dist_node_hm
 heatmap_ymax = np.max(corner_point_coordinates[:,1])-dist_node_hm
 heatmap_data = np.empty((img.shape[1],img.shape[0]))
 heatmap_data[:] = np.nan
+
 
 if animation_on:
     ani = FuncAnimation(fig, update, frames=600, interval = 10,init_func=init, blit=True, repeat = False)
